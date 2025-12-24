@@ -2,8 +2,9 @@
 My personal blog Digital Divide
 
 ## Tech Stack
+- Astro JS
 - HTML
 - CSS
 - JavaScript
 - tailwindcss
-- strapi (headless cms)
+- Vite
