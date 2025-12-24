@@ -7,7 +7,9 @@
       "Bash(git pull:*)",
       "Bash(git add:*)",
       "Bash(git rebase:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add comprehensive roadmap for Substack-like blog platform\n\n- Create ROADMAP.md with 10-phase implementation plan\n- Define New Yorker-inspired design system \\(serif typography, pastel accents\\)\n- Plan content collections for blog posts and notes\n- Specify MailerLite integration for newsletter functionality\n- Update README.md with current tech stack\n- Update dependencies \\(Astro 5.16.6, latest packages\\)\n- Add .claude directory for Claude Code configuration\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nchore: update npm dependencies to fix security vulnerability\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []
