@@ -5,6 +5,21 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 ---
 
+## Success Criteria by Phase
+
+| Phase | Complete When |
+|-------|---------------|
+| **Phase 1** | Content renders at `/blog/test-post`, reading time displays, drafts hidden in prod |
+| **Phase 2** | Typography matches design system, dark mode toggles correctly, all layouts responsive |
+| **Phase 3** | Blog archive paginated, ToC generates, related posts appear, RSS validates |
+| **Phase 4** | Newsletter signup works end-to-end with MailerLite, double opt-in confirmed |
+| **Phase 5** | Search returns relevant results, homepage shows featured/recent content |
+| **Phase 6** | Lighthouse performance 90+, all meta tags render, social previews work |
+| **Phase 7** | WCAG 2.1 AA audit passes, View Transitions smooth, all E2E tests green |
+| **Phase 8** | Site deployed to production, all checklist items verified |
+
+---
+
 ## Phase 1: Foundation & Content Infrastructure
 
 ### 1.1 Content Collections Setup
@@ -21,10 +36,22 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
   - Media: coverImage
 - Create sample content in each collection type
 
+**MDX Support:**
+- Install `@astrojs/mdx` integration
+- Configure MDX in `astro.config.mjs`
+- Create reusable MDX components (Callout, CodeBlock, Figure, etc.)
+
+**Draft Preview System:**
+- Environment variable for preview mode (`PUBLIC_PREVIEW_MODE`)
+- Development-only draft visibility with visual indicator
+- Preview URL generation for sharing drafts
+
 **Files to create:**
 - `src/content/config.ts`
 - `src/content/blog/` (directory)
 - `src/content/notes/` (directory)
+- `src/components/mdx/Callout.astro`
+- `src/components/mdx/Figure.astro`
 
 ### 1.2 Type-Safe Data Layer
 **Goal:** Create utility functions for content querying and filtering
@@ -34,6 +61,11 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Create sorting utilities (newest first, by popularity)
 - Implement draft filtering for production builds
 - Add reading time calculation utility
+
+**Content Scheduling:**
+- `publishDate` handling for future-dated posts
+- Build-time filtering of unpublished content (posts with future dates)
+- Optional: scheduled builds via hosting platform (Vercel cron, GitHub Actions)
 
 **Files to create:**
 - `src/lib/content-utils.ts`
@@ -47,7 +79,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 **Goal:** Implement New Yorker-inspired serif typography with Tailwind
 
 **Tasks:**
-- Install Google Fonts: Crimson Pro (headings), Lora (body), Inter (UI elements)
+- Install Google Fonts: Fraunces (headings), Lora (body), Inter (UI elements)
 - Configure Tailwind with custom font families
 - Define typographic scale (h1-h6, body, captions)
 - Set up prose classes with generous line-height (1.7-1.8)
@@ -57,8 +89,8 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - `src/styles/global.css`
 - `tailwind.config.mjs` (to be created)
 
-### 2.2 Color Palette
-**Goal:** Define a minimal color scheme with pastel accents
+### 2.2 Color Palette & Dark Mode
+**Goal:** Define a minimal color scheme with pastel accents and full dark mode support
 
 **Tasks:**
 - Define core colors:
@@ -67,12 +99,22 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
   - Accent: Muted sage green (#A8BCA1)
   - Secondary: Dusty rose (#D4A5A5)
   - Tertiary: Soft periwinkle (#B4C5E4)
-- Configure Tailwind color variables
-- Set up dark mode considerations (optional)
+- Configure Tailwind color variables using CSS custom properties
+
+**Dark Mode Implementation:**
+- Define dark mode color palette (inverted with appropriate contrast)
+- System preference detection (`prefers-color-scheme: dark`)
+- Theme toggle component with localStorage persistence
+- Configure Tailwind dark mode (class strategy for manual toggle)
+- Smooth transition between themes
+- Respect `prefers-reduced-motion` for theme transitions
 
 **Files to modify:**
 - `tailwind.config.mjs`
 - `src/styles/global.css`
+
+**Files to create:**
+- `src/components/ThemeToggle.astro`
 
 ### 2.3 Layout Components
 **Goal:** Build reusable layout primitives
@@ -108,10 +150,29 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Add social share buttons (minimal, icon-only)
 - Add "Subscribe" CTA at bottom of post
 
+**Code Syntax Highlighting:**
+- Configure Shiki (built into Astro) with custom theme
+- Style code blocks to match design system
+- Add copy-to-clipboard button for code blocks
+- Support line highlighting and line numbers
+- Create `<CodeBlock>` MDX component for enhanced features
+
+**Heading Anchor Links:**
+- Auto-generate heading IDs using rehype-slug
+- Add anchor links on hover (rehype-autolink-headings)
+- Smooth scroll-to-anchor behavior
+- Optional: URL hash updates on scroll (Intersection Observer)
+
+**Image Captions:**
+- `<figure>` and `<figcaption>` styling for prose
+- Create `<Figure>` MDX component with alt text enforcement
+- Support image attribution/credits
+
 **Files to create:**
 - `src/layouts/BlogPost.astro`
 - `src/components/TableOfContents.astro`
 - `src/components/ShareButtons.astro`
+- `src/components/CopyButton.astro`
 
 ### 3.2 Blog Archive & Listing Pages
 **Goal:** Display posts in an elegant, scannable format
@@ -125,6 +186,12 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Implement filtering by tag and series
 - Add RSS feed generation
 
+**Related Posts:**
+- Algorithm for related posts (by shared tags, same series, or recent)
+- "You might also like" component at post footer
+- Configurable number of related posts (default: 3)
+- Fallback to recent posts if no strong matches
+
 **Files to create:**
 - `src/pages/blog/index.astro`
 - `src/pages/blog/[...page].astro` (pagination)
@@ -133,6 +200,8 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - `src/pages/notes/[slug].astro`
 - `src/components/PostCard.astro`
 - `src/components/Pagination.astro`
+- `src/components/RelatedPosts.astro`
+- `src/lib/related-posts.ts`
 
 ### 3.3 Taxonomies (Tags & Series)
 **Goal:** Organize content by topic and thematic collections
@@ -154,15 +223,15 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 ---
 
-## Phase 4: Engagement Features
+## Phase 4: Newsletter System (MailerLite)
 
-### 4.1 Newsletter Subscription (MailerLite)
-**Goal:** Collect email subscribers with a simple, elegant form
+### 4.1 Subscriber Management
+**Goal:** Collect email subscribers with a simple, elegant form and GDPR compliance
 
 **Tasks:**
 - Integrate with MailerLite API for subscriber management
 - Create subscribe form component with:
-  - Email input with validation
+  - Email input with client-side validation
   - Privacy-conscious messaging
   - Inline and floating variants
 - Add subscribe CTA to:
@@ -171,12 +240,48 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
   - Dedicated `/subscribe` page
 - Implement API route for MailerLite form submission
 
+**GDPR Compliance & Double Opt-in:**
+- Double opt-in confirmation flow via MailerLite
+- GDPR compliance checkbox ("I agree to receive emails...")
+- Link to privacy policy in form
+- Clear unsubscribe instructions
+
+**Form Error Handling:**
+- Client-side validation with inline error messages
+- Server error handling (rate limits, API failures, duplicate emails)
+- Loading states during submission (spinner, disabled button)
+- Toast/notification system for success/error feedback
+- Honeypot field for spam prevention
+
 **Files to create:**
 - `src/components/SubscribeForm.astro`
+- `src/components/Toast.astro`
 - `src/pages/subscribe.astro`
-- `src/pages/api/subscribe.ts` (API route for MailerLite)
+- `src/pages/api/subscribe.ts`
+- `src/lib/mailerlite.ts`
 
-### 4.2 Author Profiles
+### 4.2 Email Templates & Campaigns
+**Goal:** Create HTML email templates matching site aesthetic and send newsletters
+
+**Tasks:**
+- Design responsive HTML email template for MailerLite
+- Match typography and color palette (inline CSS for email clients)
+- Support both plain text and HTML versions
+- Add unsubscribe and preference links
+- Test across email clients (Gmail, Outlook, Apple Mail)
+
+**Newsletter Sending:**
+- Integrate with MailerLite API for campaign creation
+- Create admin/webhook route to trigger sends on publish (optional)
+- Add email preview functionality
+- Use MailerLite's built-in scheduling features
+
+**Files to create:**
+- `src/emails/newsletter-template.html`
+- `src/lib/email-generator.ts`
+- `src/pages/api/send-newsletter.ts` (optional)
+
+### 4.3 Author Profiles
 **Goal:** Support single or multiple authors with bio pages
 
 **Tasks:**
@@ -192,9 +297,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - `src/components/AuthorByline.astro`
 - `src/components/AuthorCard.astro`
 
----
-
-## Phase 5: Notes/Short Posts
+### 4.4 Notes/Short Posts
 **Goal:** Quick, Twitter-like updates with minimal chrome
 
 **Tasks:**
@@ -210,41 +313,9 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 ---
 
-## Phase 6: Email Newsletter Integration (MailerLite)
+## Phase 5: Discovery & Navigation
 
-### 6.1 Email Template Design
-**Goal:** Create HTML email templates matching site aesthetic
-
-**Tasks:**
-- Design responsive HTML email template for MailerLite
-- Match typography and color palette
-- Support both plain text and HTML versions
-- Add unsubscribe and preference links
-- Test across email clients (Gmail, Outlook, Apple Mail)
-
-**Files to create:**
-- `src/emails/newsletter-template.html`
-- `src/lib/email-generator.ts`
-
-### 6.2 Newsletter Sending System
-**Goal:** Send new posts to subscribers via MailerLite
-
-**Tasks:**
-- Integrate with MailerLite API for campaign creation
-- Create webhook/API route to trigger sends on publish
-- Add email preview functionality
-- Implement scheduling (optional)
-- Use MailerLite's subscriber management features
-
-**Files to create:**
-- `src/pages/api/send-newsletter.ts`
-- `src/lib/mailerlite.ts`
-
----
-
-## Phase 7: Discovery & Navigation
-
-### 7.1 Search Functionality
+### 5.1 Search Functionality
 **Goal:** Allow readers to search all content
 
 **Tasks:**
@@ -262,7 +333,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - `src/pages/search.astro`
 - `src/lib/search.ts`
 
-### 7.2 Enhanced Homepage
+### 5.2 Enhanced Homepage
 **Goal:** Curate the best entry point for new readers
 
 **Tasks:**
@@ -281,7 +352,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - `src/components/Hero.astro` (to be created)
 - `src/components/FeaturedPost.astro` (to be created)
 
-### 7.3 About & Static Pages
+### 5.3 About & Static Pages
 **Goal:** Tell the story behind the publication
 
 **Tasks:**
@@ -298,9 +369,9 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 ---
 
-## Phase 8: Performance & SEO
+## Phase 6: Performance & SEO
 
-### 8.1 Image Optimization
+### 6.1 Image Optimization
 **Goal:** Fast loading images without sacrificing quality
 
 **Tasks:**
@@ -314,7 +385,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - `astro.config.mjs`
 - All layout components using images
 
-### 8.2 SEO & Metadata
+### 6.2 SEO & Metadata
 **Goal:** Maximize discoverability and social sharing
 
 **Tasks:**
@@ -328,12 +399,20 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Create `robots.txt`
 - Add RSS feed with full content
 
+**Automated OG Image Generation:**
+- Set up Satori or @vercel/og for dynamic social images
+- Design template matching site aesthetic (typography, colors)
+- Generate images at build time for each post
+- Include post title, author, and site branding
+- Test previews with social media debuggers
+
 **Files to create:**
 - `src/components/SEO.astro`
+- `src/pages/og/[...slug].png.ts` (OG image endpoint)
 - `public/robots.txt`
 - `src/pages/rss.xml.ts`
 
-### 8.3 Analytics & Monitoring
+### 6.3 Analytics & Monitoring
 **Goal:** Understand readership without invading privacy
 
 **Tasks:**
@@ -352,9 +431,9 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 ---
 
-## Phase 9: Polish & Details
+## Phase 7: Polish & Details
 
-### 9.1 Artsy Design Details
+### 7.1 Artsy Design Details
 **Goal:** Add subtle touches that elevate the design
 
 **Tasks:**
@@ -363,27 +442,54 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Create pull quotes styling
 - Design elegant blockquote treatment
 - Add subtle hover states and transitions
-- Implement smooth page transitions (View Transitions API)
+
+**View Transitions Implementation:**
+- Import `astro:transitions` in BaseLayout
+- Add `<ViewTransitions />` component to head
+- Define transition animations (fade, slide) for page navigation
+- Add `transition:name` attributes to persistent elements:
+  - Header (persists across pages)
+  - Footer (persists across pages)
+  - Post titles (morph to full article view)
+- Configure `transition:animate` for content areas
+- Handle fallbacks for unsupported browsers (graceful degradation)
+- Respect `prefers-reduced-motion` (disable animations)
 
 **Files to modify:**
 - `src/styles/global.css`
+- `src/layouts/BaseLayout.astro`
 - `src/layouts/BlogPost.astro`
+- `src/components/Header.astro`
 
-### 9.2 Accessibility
-**Goal:** Ensure the site is usable by everyone
+### 7.2 Accessibility
+**Goal:** Ensure the site is usable by everyone (WCAG 2.1 AA compliance)
 
 **Tasks:**
 - Audit with axe DevTools or Lighthouse
 - Add proper ARIA labels to all interactive elements
 - Ensure keyboard navigation works everywhere
-- Test with screen readers
-- Verify color contrast ratios (WCAG AA minimum)
+- Test with screen readers (VoiceOver, NVDA)
+- Verify color contrast ratios (WCAG AA minimum: 4.5:1 for text)
 - Add skip-to-content link
+
+**Specific Accessibility Checklist:**
+- [ ] Focus management for modals/dropdowns (trap focus, return focus on close)
+- [ ] Respect `prefers-reduced-motion` (disable animations system-wide)
+- [ ] Form label associations (all inputs have associated labels)
+- [ ] Error announcements for screen readers (aria-live regions)
+- [ ] Touch target sizes (44x44px minimum for mobile)
+- [ ] Heading hierarchy validation (no skipped levels)
+- [ ] Alt text on all images (enforce in content schema)
+- [ ] Visible focus indicators (outline or custom focus ring)
+- [ ] Link text is descriptive (avoid "click here")
+- [ ] Language attribute on `<html>` element
+- [ ] Sufficient line spacing (1.5x minimum for body text)
 
 **Files to audit/modify:**
 - All component and layout files
+- `src/content/config.ts` (add alt text validation)
 
-### 9.3 Print Stylesheet
+### 7.3 Print Stylesheet
 **Goal:** Beautiful printed articles (very New Yorker)
 
 **Tasks:**
@@ -396,11 +502,38 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 **Files to create:**
 - `src/styles/print.css`
 
+### 7.4 Testing Strategy
+**Goal:** Ensure quality and prevent regressions
+
+**Visual Regression Testing:**
+- Set up Percy or Chromatic for visual snapshots
+- Configure CI integration for PR previews
+- Define critical pages for visual testing (homepage, blog post, subscribe)
+
+**End-to-End Testing:**
+- Set up Playwright for E2E tests
+- Test critical user flows:
+  - Newsletter subscription (form submit, success/error states)
+  - Navigation between pages
+  - Search functionality
+  - Dark mode toggle
+- Run tests on CI before deploy
+
+**Accessibility Testing Automation:**
+- Integrate axe-core into test suite
+- Fail builds on a11y violations
+- Generate accessibility reports
+
+**Files to create:**
+- `playwright.config.ts`
+- `tests/e2e/` (directory)
+- `.github/workflows/test.yml` (or equivalent CI config)
+
 ---
 
-## Phase 10: Deployment & Launch
+## Phase 8: Deployment & Launch
 
-### 10.1 Build Configuration
+### 8.1 Build Configuration
 **Goal:** Optimize production build
 
 **Tasks:**
@@ -414,7 +547,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - `astro.config.mjs`
 - `.env.example` (to be created)
 
-### 10.2 Hosting & Domain
+### 8.2 Hosting & Domain
 **Goal:** Deploy to production
 
 **Tasks:**
@@ -428,7 +561,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Set up deployment from git repository
 - Add deployment previews for branches
 
-### 10.3 Launch Checklist
+### 8.3 Launch Checklist
 **Goal:** Ensure everything works before going public
 
 **Tasks:**
@@ -461,7 +594,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - **Images:** Astro Image with Sharp
 
 ### Design
-- **Fonts:** Crimson Pro (headings), Lora (body), Inter (UI)
+- **Fonts:** Fraunces (headings), Lora (body), Inter (UI)
 - **Colors:** Warm neutrals with sage, rose, and periwinkle accents
 - **Layout:** Max-width 720px prose, generous margins
 - **Approach:** Mobile-first, progressively enhanced
@@ -493,19 +626,6 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 ---
 
-## Estimated Scope
-
-**Minimal Viable Blog (Phases 1-3):** ~20-25 hours
-- Core content system, design system, basic blog functionality
-
-**Feature-Complete Platform (Phases 1-7):** ~50-65 hours
-- All content types, newsletter with MailerLite, search, email integration
-
-**Polished Launch (All Phases):** ~80-100 hours
-- Everything above plus performance optimization, analytics, accessibility audit
-
----
-
 ## Future Ideas (Deferred)
 
 ### Photo Essays
@@ -518,6 +638,29 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Giscus (GitHub Discussions)
 - Utterances (GitHub Issues)
 - Webmention integration
+
+### Progressive Web App (PWA)
+- Service worker for offline reading of saved articles
+- Web app manifest for installability
+- Install prompt handling
+- Offline fallback page with cached content
+
+### Internationalization (i18n)
+- Astro i18n routing setup (`/en/`, `/es/`, etc.)
+- Content collections per locale
+- Language switcher component in header
+- RTL language support (Arabic, Hebrew)
+- Date/time localization
+
+### Content Migration Tools
+- Import scripts for common platforms:
+  - WordPress (WXR format)
+  - Ghost (JSON export)
+  - Medium (export zip)
+  - Substack (export)
+- Frontmatter normalization utility
+- Image migration and optimization
+- Redirect mapping for SEO preservation
 
 ---
 
