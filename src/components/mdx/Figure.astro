@@ -1,0 +1,38 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  credit?: string;
+  width?: number;
+  height?: number;
+}
+
+const { src, alt, caption, credit, width, height } = Astro.props;
+
+if (!alt) {
+  console.warn('Figure component: alt text is required for accessibility');
+}
+---
+
+<figure class="my-8">
+  <img
+    src={src}
+    alt={alt}
+    width={width}
+    height={height}
+    class="mx-auto rounded-lg"
+    loading="lazy"
+    decoding="async"
+  />
+  {(caption || credit) && (
+    <figcaption class="mt-3 text-center text-sm text-gray-600 dark:text-gray-400">
+      {caption}
+      {credit && (
+        <span class="block text-xs italic opacity-75">
+          Credit: {credit}
+        </span>
+      )}
+    </figcaption>
+  )}
+</figure>

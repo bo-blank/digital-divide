@@ -1,2 +1,51 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Design tokens using CSS custom properties */
+@theme {
+  /* Light mode colors (default) */
+  --color-bg: #FAFAF8;
+  --color-text: #1A1A1A;
+  --color-text-muted: #6B7280;
+  --color-border: #E5E7EB;
+  --color-accent: #A8BCA1;
+  --color-secondary: #D4A5A5;
+  --color-tertiary: #B4C5E4;
+}
+
+/* Dark mode colors */
+.dark {
+  --color-bg: #121212;
+  --color-text: #F5F5F5;
+  --color-text-muted: #9CA3AF;
+  --color-border: #374151;
+  --color-accent: #A8BCA1;
+  --color-secondary: #D4A5A5;
+  --color-tertiary: #B4C5E4;
+}
+
+/* Base styles */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

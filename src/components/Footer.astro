@@ -1,0 +1,35 @@
+---
+const currentYear = new Date().getFullYear();
+
+const footerLinks = [
+  { href: '/about', label: 'About' },
+  { href: '/subscribe', label: 'Subscribe' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/rss.xml', label: 'RSS' },
+];
+---
+
+<footer class="border-t border-gray-200 dark:border-gray-800 mt-auto">
+  <div class="mx-auto max-w-4xl px-4 py-8">
+    <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        &copy; {currentYear} Digital Divide. All rights reserved.
+      </p>
+
+      <nav aria-label="Footer navigation">
+        <ul class="flex items-center gap-6">
+          {footerLinks.map(({ href, label }) => (
+            <li>
+              <a
+                href={href}
+                class="text-sm text-gray-500 dark:text-gray-400 transition-colors hover:text-accent"
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</footer>

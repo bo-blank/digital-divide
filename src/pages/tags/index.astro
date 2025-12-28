@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/Container.astro';
+import { getPublishedPosts } from '../../lib/content-utils';
+
+const posts = await getPublishedPosts();
+
+// Collect all tags with their post counts
+const tagCounts = new Map<string, number>();
+posts.forEach((post) => {
+  post.data.tags.forEach((tag) => {
+    tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+  });
+});
+
+// Sort tags alphabetically
+const sortedTags = Array.from(tagCounts.entries()).sort((a, b) =>
+  a[0].localeCompare(b[0])
+);
+---
+
+<BaseLayout
+  title="Tags"
+  description="Browse all topics and tags on Digital Divide."
+>
+  <section class="py-12 sm:py-16">
+    <Container>
+      <header class="mb-12">
+        <h1 class="text-3xl font-bold sm:text-4xl">Tags</h1>
+        <p class="mt-4 text-lg text-gray-600">
+          Browse essays by topic.
+        </p>
+      </header>
+
+      {sortedTags.length > 0 ? (
+        <div class="flex flex-wrap gap-3">
+          {sortedTags.map(([tag, count]) => (
+            <a
+              href={`/tags/${tag}`}
+              class="group flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 transition-colors hover:border-[#A8BCA1] hover:bg-[#A8BCA1]/10"
+            >
+              <span class="font-medium group-hover:text-[#A8BCA1]">{tag}</span>
+              <span class="text-sm text-gray-500">({count})</span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p class="text-gray-500 text-center py-12">
+          No tags yet.
+        </p>
+      )}
+    </Container>
+  </section>
+</BaseLayout>

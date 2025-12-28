@@ -1,0 +1,109 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const navLinks = [
+  { href: '/blog', label: 'Essays' },
+  { href: '/notes', label: 'Notes' },
+  { href: '/tags', label: 'Tags' },
+  { href: '/about', label: 'About' },
+  { href: '/subscribe', label: 'Subscribe' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="border-b border-gray-200 dark:border-gray-800">
+  <nav class="mx-auto max-w-4xl px-4 py-6">
+    <div class="flex items-center justify-between">
+      <a href="/" class="text-xl font-bold tracking-tight hover:opacity-80">
+        Digital Divide
+      </a>
+
+      <div class="flex items-center gap-4">
+        <!-- Desktop Navigation -->
+        <ul class="hidden items-center gap-6 sm:flex">
+          {navLinks.map(({ href, label }) => (
+            <li>
+              <a
+                href={href}
+                class:list={[
+                  'text-sm transition-colors hover:text-accent',
+                  currentPath.startsWith(href)
+                    ? 'text-accent'
+                    : 'text-gray-600 dark:text-gray-400',
+                ]}
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <!-- Theme Toggle -->
+        <ThemeToggle />
+
+        <!-- Mobile Menu Button -->
+        <button
+          type="button"
+          class="p-2 -mr-2 sm:hidden"
+          aria-label="Open menu"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <svg
+            class="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <ul
+      class="hidden mt-4 border-t border-gray-100 pt-4 dark:border-gray-800 sm:hidden"
+      data-mobile-menu
+    >
+      {navLinks.map(({ href, label }) => (
+        <li>
+          <a
+            href={href}
+            class:list={[
+              'block py-2 transition-colors hover:text-accent',
+              currentPath.startsWith(href)
+                ? 'text-accent'
+                : 'text-gray-600 dark:text-gray-400',
+            ]}
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>
+
+<script>
+  function setupMobileMenu() {
+    const menuToggle = document.querySelector('[data-menu-toggle]');
+    const mobileMenu = document.querySelector('[data-mobile-menu]');
+
+    menuToggle?.addEventListener('click', () => {
+      const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isExpanded));
+      mobileMenu?.classList.toggle('hidden');
+    });
+  }
+
+  setupMobileMenu();
+  document.addEventListener('astro:after-swap', setupMobileMenu);
+</script>

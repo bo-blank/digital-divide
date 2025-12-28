@@ -1,0 +1,173 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/Container.astro';
+---
+
+<BaseLayout
+  title="Subscribe"
+  description="Subscribe to Digital Divide and get new essays delivered to your inbox."
+>
+  <section class="py-12 sm:py-16">
+    <Container narrow>
+      <header class="mb-12 text-center">
+        <h1 class="text-3xl font-bold sm:text-4xl">Subscribe</h1>
+        <p class="mt-4 text-lg text-gray-600">
+          Get new essays delivered directly to your inbox.
+        </p>
+      </header>
+
+      <div class="mx-auto max-w-md">
+        <form class="space-y-4" data-subscribe-form>
+          <div>
+            <label for="email" class="sr-only">Email address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="your@email.com"
+              autocomplete="email"
+              class="w-full rounded-lg border border-gray-300 px-4 py-3 text-base transition-colors focus:border-[#A8BCA1] focus:outline-none focus:ring-2 focus:ring-[#A8BCA1]/20"
+            />
+          </div>
+
+          <div class="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="consent"
+              name="consent"
+              required
+              class="mt-1 h-4 w-4 rounded border-gray-300 text-[#A8BCA1] focus:ring-[#A8BCA1]"
+            />
+            <label for="consent" class="text-sm text-gray-600">
+              I agree to receive emails from Digital Divide. You can unsubscribe
+              at any time. View our <a href="/privacy" class="text-[#A8BCA1] hover:underline">privacy policy</a>.
+            </label>
+          </div>
+
+          <!-- Honeypot field for spam prevention -->
+          <div class="hidden" aria-hidden="true">
+            <input
+              type="text"
+              name="website"
+              tabindex="-1"
+              autocomplete="off"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full rounded-lg bg-[#1A1A1A] px-6 py-3 text-base font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Subscribe
+          </button>
+        </form>
+
+        <div
+          class="mt-6 hidden rounded-lg bg-green-50 p-4 text-center text-green-800"
+          data-success-message
+        >
+          <p class="font-medium">Thanks for subscribing!</p>
+          <p class="mt-1 text-sm">Check your inbox to confirm your subscription.</p>
+        </div>
+
+        <div
+          class="mt-6 hidden rounded-lg bg-red-50 p-4 text-center text-red-800"
+          data-error-message
+        >
+          <p class="font-medium">Something went wrong.</p>
+          <p class="mt-1 text-sm">Please try again later.</p>
+        </div>
+
+        <p class="mt-8 text-center text-sm text-gray-500">
+          No spam, ever. Unsubscribe with one click.
+        </p>
+      </div>
+
+      <div class="mt-16 border-t border-gray-200 pt-12">
+        <h2 class="text-xl font-bold text-center mb-6">What you'll get</h2>
+        <div class="grid gap-6 sm:grid-cols-3">
+          <div class="text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#A8BCA1]/20">
+              <svg class="h-6 w-6 text-[#A8BCA1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="font-medium">Long-form Essays</h3>
+            <p class="mt-1 text-sm text-gray-600">
+              Thoughtful explorations of technology and culture.
+            </p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#D4A5A5]/20">
+              <svg class="h-6 w-6 text-[#D4A5A5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 class="font-medium">Quick Notes</h3>
+            <p class="mt-1 text-sm text-gray-600">
+              Brief observations and timely commentary.
+            </p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#B4C5E4]/20">
+              <svg class="h-6 w-6 text-[#B4C5E4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h3 class="font-medium">Curated Reads</h3>
+            <p class="mt-1 text-sm text-gray-600">
+              Occasional links to the best writing elsewhere.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector('[data-subscribe-form]') as HTMLFormElement;
+  const successMessage = document.querySelector('[data-success-message]');
+  const errorMessage = document.querySelector('[data-error-message]');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const honeypot = formData.get('website');
+
+    // If honeypot is filled, silently succeed (it's a bot)
+    if (honeypot) {
+      successMessage?.classList.remove('hidden');
+      form.classList.add('hidden');
+      return;
+    }
+
+    const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Subscribing...';
+
+    try {
+      // TODO: Replace with actual API endpoint
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.get('email'),
+        }),
+      });
+
+      if (response.ok) {
+        successMessage?.classList.remove('hidden');
+        form.classList.add('hidden');
+      } else {
+        throw new Error('Subscription failed');
+      }
+    } catch {
+      errorMessage?.classList.remove('hidden');
+      submitButton.disabled = false;
+      submitButton.textContent = 'Subscribe';
+    }
+  });
+</script>

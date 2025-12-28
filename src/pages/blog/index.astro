@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/Container.astro';
+import { getPublishedPosts } from '../../lib/content-utils';
+import { getReadingTime } from '../../lib/reading-time';
+
+const posts = await getPublishedPosts();
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+---
+
+<BaseLayout
+  title="Essays"
+  description="Long-form essays exploring technology, culture, and the human experience."
+>
+  <section class="py-12 sm:py-16">
+    <Container>
+      <header class="mb-12">
+        <h1 class="text-3xl font-bold sm:text-4xl">Essays</h1>
+        <p class="mt-4 text-lg text-gray-600">
+          Long-form explorations of technology, culture, and the spaces between.
+        </p>
+      </header>
+
+      {posts.length > 0 ? (
+        <div class="space-y-12">
+          {posts.map((post, index) => (
+            <article
+              class:list={[
+                'group',
+                index === 0 && 'pb-12 border-b border-gray-200',
+              ]}
+            >
+              <a href={`/blog/${post.id.replace(/\.(mdx?|md)$/, '')}`} class="block">
+                {post.data.draft && (
+                  <span class="mb-2 inline-block rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                    Draft
+                  </span>
+                )}
+                <h2
+                  class:list={[
+                    'font-semibold group-hover:text-[#A8BCA1] transition-colors',
+                    index === 0 ? 'text-2xl sm:text-3xl' : 'text-xl',
+                  ]}
+                >
+                  {post.data.title}
+                </h2>
+                <p
+                  class:list={[
+                    'mt-3 text-gray-600',
+                    index === 0 ? 'text-lg' : 'line-clamp-2',
+                  ]}
+                >
+                  {post.data.description}
+                </p>
+                <div class="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                  <span>{post.data.author}</span>
+                  <span aria-hidden="true">&middot;</span>
+                  <time datetime={post.data.publishDate.toISOString()}>
+                    {formatDate(post.data.publishDate)}
+                  </time>
+                  <span aria-hidden="true">&middot;</span>
+                  <span>{getReadingTime(post.body ?? '')}</span>
+                </div>
+                {post.data.tags.length > 0 && (
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    {post.data.tags.map((tag) => (
+                      <span class="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </a>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p class="text-gray-500 text-center py-12">
+          No essays published yet. Check back soon.
+        </p>
+      )}
+    </Container>
+  </section>
+</BaseLayout>
