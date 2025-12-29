@@ -6,31 +6,77 @@ const navLinks = [
   { href: '/notes', label: 'Notes' },
   { href: '/tags', label: 'Tags' },
   { href: '/about', label: 'About' },
-  { href: '/subscribe', label: 'Subscribe' },
+];
+
+const trendingTopics = [
+  { href: '/tags/technology', label: 'Technology' },
+  { href: '/tags/attention', label: 'Attention Economy' },
+  { href: '/tags/remote', label: 'Remote Work' },
+  { href: '/tags/culture', label: 'Digital Culture' },
+  { href: '/tags/society', label: 'Society' },
 ];
 
 const currentPath = Astro.url.pathname;
 ---
 
-<header class="border-b border-gray-200 dark:border-gray-800">
-  <nav class="mx-auto max-w-4xl px-4 py-6">
-    <div class="flex items-center justify-between">
-      <a href="/" class="text-xl font-bold tracking-tight hover:opacity-80">
+<header class="fixed left-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out" style="background-color: var(--color-bg-subtle);" data-header>
+  <nav class="mx-auto max-w-6xl px-4 py-4">
+    <div class="relative flex items-center justify-center">
+      <!-- Left side: Mobile menu -->
+      <div class="flex items-center sm:hidden">
+        <button
+          type="button"
+          class="p-2 -ml-2 text-base-content/70 transition-colors hover:text-base-content"
+          aria-label="Open menu"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Desktop Left: Nav links -->
+      <ul class="hidden items-center gap-6 sm:flex absolute left-0">
+        {navLinks.slice(0, 2).map(({ href, label }) => (
+          <li>
+            <a
+              href={href}
+              class:list={[
+                'text-sm font-medium transition-colors hover:text-primary',
+                currentPath.startsWith(href)
+                  ? 'text-primary'
+                  : 'text-base-content/70',
+              ]}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Center: Logo -->
+      <a
+        href="/"
+        class="font-heading text-xl font-semibold tracking-tight transition-opacity hover:opacity-70"
+        style="font-family: var(--font-heading);"
+      >
         Digital Divide
       </a>
 
-      <div class="flex items-center gap-4">
-        <!-- Desktop Navigation -->
+      <!-- Desktop Right: Nav links + Subscribe -->
+      <div class="flex items-center gap-4 absolute right-0">
         <ul class="hidden items-center gap-6 sm:flex">
-          {navLinks.map(({ href, label }) => (
+          {navLinks.slice(2).map(({ href, label }) => (
             <li>
               <a
                 href={href}
                 class:list={[
-                  'text-sm transition-colors hover:text-accent',
+                  'text-sm font-medium transition-colors hover:text-primary',
                   currentPath.startsWith(href)
-                    ? 'text-accent'
-                    : 'text-gray-600 dark:text-gray-400',
+                    ? 'text-primary'
+                    : 'text-base-content/70',
                 ]}
               >
                 {label}
@@ -39,57 +85,70 @@ const currentPath = Astro.url.pathname;
           ))}
         </ul>
 
+        <!-- Subscribe Button -->
+        <a href="/subscribe" class="btn btn-primary btn-sm">
+          Subscribe
+        </a>
+
         <!-- Theme Toggle -->
         <ThemeToggle />
-
-        <!-- Mobile Menu Button -->
-        <button
-          type="button"
-          class="p-2 -mr-2 sm:hidden"
-          aria-label="Open menu"
-          aria-expanded="false"
-          data-menu-toggle
-        >
-          <svg
-            class="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
       </div>
     </div>
 
     <!-- Mobile Navigation -->
-    <ul
-      class="hidden mt-4 border-t border-gray-100 pt-4 dark:border-gray-800 sm:hidden"
-      data-mobile-menu
-    >
+    <ul class="hidden mt-4 border-t border-base-300 pt-4 sm:hidden" data-mobile-menu>
       {navLinks.map(({ href, label }) => (
         <li>
           <a
             href={href}
             class:list={[
-              'block py-2 transition-colors hover:text-accent',
+              'block py-3 text-base font-medium transition-colors hover:text-primary',
               currentPath.startsWith(href)
-                ? 'text-accent'
-                : 'text-gray-600 dark:text-gray-400',
+                ? 'text-primary'
+                : 'text-base-content/70',
             ]}
           >
             {label}
           </a>
         </li>
       ))}
+      <li>
+        <a
+          href="/subscribe"
+          class="block py-3 text-base font-medium text-primary transition-colors hover:text-primary/80"
+        >
+          Subscribe
+        </a>
+      </li>
     </ul>
   </nav>
+
+  <!-- Trending Topics Bar -->
+  <div class="border-t border-base-300 bg-base-200">
+    <div class="mx-auto max-w-6xl px-4 py-2">
+      <div class="flex items-center justify-center gap-4">
+        <span class="flex items-center gap-2 text-sm font-medium text-secondary">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-secondary"></span>
+          </span>
+          Trending
+        </span>
+        <ul class="flex items-center gap-4 sm:gap-6">
+          {trendingTopics.map(({ href, label }) => (
+            <li class="shrink-0">
+              <a
+                href={href}
+                class="text-sm text-base-content/70 transition-colors hover:text-primary"
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
 </header>
 
 <script>
@@ -104,6 +163,42 @@ const currentPath = Astro.url.pathname;
     });
   }
 
+  function setupScrollHeader() {
+    const header = document.querySelector('[data-header]');
+    if (!header) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const updateHeader = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 0) {
+        header.classList.remove('-translate-y-full');
+      } else if (currentScrollY > lastScrollY && currentScrollY > 60) {
+        header.classList.add('-translate-y-full');
+      } else if (currentScrollY < lastScrollY) {
+        header.classList.remove('-translate-y-full');
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateHeader);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
   setupMobileMenu();
-  document.addEventListener('astro:after-swap', setupMobileMenu);
+  setupScrollHeader();
+  document.addEventListener('astro:after-swap', () => {
+    setupMobileMenu();
+    setupScrollHeader();
+  });
 </script>

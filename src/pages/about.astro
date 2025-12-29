@@ -1,20 +1,26 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
+import HeroImage from '../components/HeroImage.astro';
 ---
 
 <BaseLayout
   title="About"
   description="Learn more about Digital Divide and our mission to explore the intersection of technology and humanity."
 >
+  <HeroImage
+    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&h=600&fit=crop"
+    alt="Team collaborating in a modern workspace"
+  >
+    <h1 class="text-3xl sm:text-4xl font-heading font-normal tracking-tight text-base-content">
+      About
+    </h1>
+  </HeroImage>
+
   <section class="py-12 sm:py-16">
     <Container narrow>
-      <header class="mb-12">
-        <h1 class="text-3xl font-bold sm:text-4xl">About</h1>
-      </header>
-
       <div class="prose prose-lg max-w-none">
-        <p class="text-xl text-gray-600 leading-relaxed">
+        <p class="text-xl text-base-content/70 leading-relaxed">
           Digital Divide is an independent publication exploring how technology
           shapes our lives, relationships, and sense of self.
         </p>

@@ -27,6 +27,16 @@ const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
 
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Google Fonts: Fraunces (headings), Lora (body), Inter (UI) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Open Graph -->
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
@@ -43,7 +53,7 @@ const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
   </head>
   <body class="min-h-screen flex flex-col">
     <Header />
-    <main class="flex-1">
+    <main class="flex-1 pt-[104px]">
       <slot />
     </main>
     <Footer />

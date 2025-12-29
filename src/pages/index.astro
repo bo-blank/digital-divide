@@ -1,13 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
+import HeroImage from '../components/HeroImage.astro';
 import { getPublishedPosts, getPublishedNotes } from '../lib/content-utils';
-import { getReadingTime } from '../lib/reading-time';
+import { getWordCount } from '../lib/reading-time';
 
 const posts = await getPublishedPosts();
 const notes = await getPublishedNotes();
 
-const recentPosts = posts.slice(0, 5);
+// Featured post is the most recent one
+const featuredPost = posts[0];
+const recentPosts = posts.slice(1, 4);
 const recentNotes = notes.slice(0, 3);
 
 function formatDate(date: Date): string {
@@ -20,101 +23,181 @@ function formatDate(date: Date): string {
 ---
 
 <BaseLayout title="Digital Divide">
-  <!-- Hero Section -->
-  <section class="py-16 sm:py-24">
-    <Container>
-      <div class="max-w-2xl">
-        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
-          Digital Divide
-        </h1>
-        <p class="mt-6 text-lg text-gray-600 leading-relaxed">
-          Essays exploring the intersection of technology and humanity.
-          We examine how digital tools shape our relationships, communities,
-          and sense of self.
-        </p>
-        <div class="mt-8 flex gap-4">
-          <a
-            href="/subscribe"
-            class="inline-flex items-center rounded-full bg-[#1A1A1A] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-          >
-            Subscribe
-          </a>
-          <a
-            href="/about"
-            class="inline-flex items-center rounded-full border border-gray-300 px-6 py-3 text-sm font-medium transition-colors hover:border-gray-400"
-          >
-            Learn more
-          </a>
+  <!-- Hero Section - New Yorker Style -->
+  {featuredPost ? (
+    <a href={`/blog/${featuredPost.id.replace(/\.(mdx?|md)$/, '')}`} class="group block border-b border-base-300">
+      <div class="grid lg:grid-cols-2 min-h-[70vh]">
+        <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
+          <article class="max-w-xl">
+            <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1] group-hover:underline">
+              {featuredPost.data.title}
+            </h1>
+            <p class="mt-8 text-lg sm:text-xl leading-relaxed text-base-content/80">
+              {featuredPost.data.description}
+              {featuredPost.data.author && (
+                <span class="font-semibold"> {featuredPost.data.author}</span>
+              )} reports.
+            </p>
+            <div class="mt-8 flex items-center gap-4">
+              <span class="btn btn-outline btn-primary">
+                Read
+              </span>
+              <span class="text-sm text-base-content/60">
+                {getWordCount(featuredPost.body ?? '')}
+              </span>
+            </div>
+          </article>
         </div>
+
+        <HeroImage
+          variant="split"
+          src={featuredPost.data.coverImage?.src ?? ''}
+          alt={featuredPost.data.coverImage?.alt ?? ''}
+        >
+          {!featuredPost.data.coverImage && (
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-primary-content/20 text-9xl font-heading">DD</div>
+            </div>
+          )}
+        </HeroImage>
+      </div>
+    </a>
+  ) : (
+    <section class="border-b border-base-300">
+      <div class="grid lg:grid-cols-2 min-h-[70vh]">
+        <!-- Left Column: Text -->
+        <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
+          <div class="max-w-xl">
+            <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1]">
+              Digital Divide
+            </h1>
+            <p class="mt-8 text-lg sm:text-xl leading-relaxed text-base-content/80">
+              Essays exploring the intersection of technology and humanity.
+              We examine how digital tools shape our relationships, communities,
+              and sense of self.
+            </p>
+            <div class="mt-8">
+              <a href="/subscribe" class="btn btn-outline btn-primary">
+                Subscribe
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Image -->
+        <div class="relative bg-primary min-h-[50vh] lg:min-h-full">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-primary-content/20 text-9xl font-heading">DD</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Newsletter CTA -->
+  <section class="py-4">
+    <Container>
+      <div class="flex items-center justify-center gap-2 text-base-content/70 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <a href="/subscribe" class="transition-opacity">
+          Support independent journalism. Subscribe today &raquo;
+        </a>
       </div>
     </Container>
   </section>
 
   <!-- Recent Essays -->
-  <section class="py-12 border-t border-gray-200">
+  <section class="py-12 border-t border-base-300">
     <Container>
       <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-bold">Recent Essays</h2>
-        <a href="/blog" class="text-sm text-[#A8BCA1] hover:underline">
+        <h2>Recent Essays</h2>
+        <a href="/blog" class="text-sm text-primary hover:underline">
           View all &rarr;
         </a>
       </div>
 
       {recentPosts.length > 0 ? (
-        <div class="space-y-8">
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {recentPosts.map((post) => (
-            <article class="group">
-              <a href={`/blog/${post.id.replace(/\.(mdx?|md)$/, '')}`} class="block">
-                <h3 class="text-xl font-semibold group-hover:text-[#A8BCA1] transition-colors">
+            <a href={`/blog/${post.id.replace(/\.(mdx?|md)$/, '')}`} class="group card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
+              {post.data.coverImage && (
+                <figure>
+                  <img
+                    src={post.data.coverImage.src}
+                    alt={post.data.coverImage.alt}
+                    class="h-48 w-full object-cover"
+                    loading="lazy"
+                  />
+                </figure>
+              )}
+              <div class="card-body">
+                <h3 class="card-title text-lg group-hover:underline">
                   {post.data.title}
                 </h3>
-                <p class="mt-2 text-gray-600 line-clamp-2">
+                <p class="text-base-content/70 line-clamp-4 text-sm">
                   {post.data.description}
                 </p>
-                <div class="mt-3 flex items-center gap-2 text-sm text-gray-500">
-                  <time datetime={post.data.publishDate.toISOString()}>
-                    {formatDate(post.data.publishDate)}
-                  </time>
-                  <span aria-hidden="true">&middot;</span>
-                  <span>{getReadingTime(post.body ?? '')}</span>
+                <div class="card-actions justify-start mt-2">
+                  <div class="flex items-center gap-2 text-xs text-base-content/70">
+                    <time datetime={post.data.publishDate.toISOString()}>
+                      {formatDate(post.data.publishDate)}
+                    </time>
+                    <span aria-hidden="true">&middot;</span>
+                    <span>{getWordCount(post.body ?? '')}</span>
+                  </div>
                 </div>
-              </a>
-            </article>
+              </div>
+            </a>
           ))}
         </div>
       ) : (
-        <p class="text-gray-500">No essays published yet.</p>
+        <p class="text-base-content/70">No essays published yet.</p>
       )}
     </Container>
   </section>
 
   <!-- Recent Notes -->
   {recentNotes.length > 0 && (
-    <section class="py-12 border-t border-gray-200">
+    <section class="py-12 border-t border-base-300">
       <Container>
         <div class="flex items-center justify-between mb-8">
-          <h2 class="text-2xl font-bold">Notes</h2>
-          <a href="/notes" class="text-sm text-[#A8BCA1] hover:underline">
+          <h2>Notes</h2>
+          <a href="/notes" class="text-sm text-primary hover:underline">
             View all &rarr;
           </a>
         </div>
 
-        <div class="space-y-6">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recentNotes.map((note) => (
-            <article class="group border-l-2 border-gray-200 pl-4 hover:border-[#A8BCA1] transition-colors">
+            <article class="bg-base-100 shadow-sm hover:shadow-md transition-shadow rounded-lg p-4 group">
               <a href={`/notes/${note.id.replace(/\.(mdx?|md)$/, '')}`} class="block">
-                {note.data.title && (
-                  <h3 class="font-medium group-hover:text-[#A8BCA1] transition-colors">
+                {note.data.title ? (
+                  <h3 class="font-medium group-hover:underline mb-2">
                     {note.data.title}
                   </h3>
+                ) : (
+                  <p class="text-base-content/70 mb-2">View note &rarr;</p>
                 )}
                 <time
                   datetime={note.data.publishDate.toISOString()}
-                  class="text-sm text-gray-500"
+                  class="text-xs text-base-content/70 block"
                 >
                   {formatDate(note.data.publishDate)}
                 </time>
               </a>
+                {note.data.tags && note.data.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-1 mt-3">
+                    {note.data.tags.slice(0, 3).map((tag) => (
+                      <a
+                        href={`/tags/${tag}`}
+                      >
+                        {tag}
+                      </a>
+                    ))}
+                  </div>
+                )}
             </article>
           ))}
         </div>
@@ -122,21 +205,4 @@ function formatDate(date: Date): string {
     </section>
   )}
 
-  <!-- Newsletter CTA -->
-  <section class="py-16 border-t border-gray-200 bg-gray-50">
-    <Container>
-      <div class="text-center max-w-xl mx-auto">
-        <h2 class="text-2xl font-bold">Stay in the loop</h2>
-        <p class="mt-4 text-gray-600">
-          Get new essays delivered directly to your inbox. No spam, unsubscribe anytime.
-        </p>
-        <a
-          href="/subscribe"
-          class="mt-6 inline-flex items-center rounded-full bg-[#1A1A1A] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-        >
-          Subscribe to newsletter
-        </a>
-      </div>
-    </Container>
-  </section>
 </BaseLayout>

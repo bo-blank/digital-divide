@@ -1,13 +1,9 @@
 const WORDS_PER_MINUTE = 200;
 
 /**
- * Calculate reading time for a given text.
- * Returns both the number of minutes and a formatted string.
+ * Count words in text, cleaning MDX/HTML content first.
  */
-export function calculateReadingTime(text: string): {
-  minutes: number;
-  text: string;
-} {
+function countWords(text: string): number {
   // Remove MDX/JSX components and HTML tags
   const cleanText = text
     .replace(/<[^>]*>/g, '')
@@ -19,7 +15,18 @@ export function calculateReadingTime(text: string): {
     .split(/\s+/)
     .filter((word) => word.length > 0);
 
-  const wordCount = words.length;
+  return words.length;
+}
+
+/**
+ * Calculate reading time for a given text.
+ * Returns both the number of minutes and a formatted string.
+ */
+export function calculateReadingTime(text: string): {
+  minutes: number;
+  text: string;
+} {
+  const wordCount = countWords(text);
   const minutes = Math.ceil(wordCount / WORDS_PER_MINUTE);
 
   return {
@@ -33,4 +40,18 @@ export function calculateReadingTime(text: string): {
  */
 export function getReadingTime(content: string): string {
   return calculateReadingTime(content).text;
+}
+
+/**
+ * Get word count rounded to nearest 100, formatted as string.
+ */
+export function getWordCount(content: string): string {
+  const wordCount = countWords(content);
+  const rounded = Math.round(wordCount / 100) * 100;
+
+  if (rounded === 0) {
+    return `${wordCount} words`;
+  }
+
+  return `${rounded.toLocaleString()} words`;
 }

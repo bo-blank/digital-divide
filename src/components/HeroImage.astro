@@ -1,0 +1,41 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  variant?: 'banner' | 'split';
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  variant = 'banner',
+  class: className = '',
+} = Astro.props;
+---
+
+{variant === 'banner' ? (
+  <div class:list={['relative h-48 sm:h-56 w-full overflow-hidden', className]}>
+    <img
+      {src}
+      {alt}
+      class="h-full w-full object-cover"
+    />
+    <div class="absolute inset-0 flex items-center">
+      <div class="px-6 w-full max-w-2xl">
+        <div class="hero-text-box backdrop-blur-sm p-6 sm:p-8 shadow-lg border-y border-base-300">
+          <slot />
+        </div>
+      </div>
+    </div>
+  </div>
+) : (
+  <div class:list={['relative bg-primary min-h-[50vh] lg:min-h-full', className]}>
+    <img
+      {src}
+      {alt}
+      class="absolute inset-0 w-full h-full object-cover"
+    />
+    <slot />
+  </div>
+)}

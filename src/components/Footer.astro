@@ -1,35 +1,46 @@
 ---
 const currentYear = new Date().getFullYear();
-
-const footerLinks = [
-  { href: '/about', label: 'About' },
-  { href: '/subscribe', label: 'Subscribe' },
-  { href: '/privacy', label: 'Privacy' },
-  { href: '/rss.xml', label: 'RSS' },
-];
 ---
 
-<footer class="border-t border-gray-200 dark:border-gray-800 mt-auto">
-  <div class="mx-auto max-w-4xl px-4 py-8">
-    <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        &copy; {currentYear} Digital Divide. All rights reserved.
-      </p>
-
-      <nav aria-label="Footer navigation">
-        <ul class="flex items-center gap-6">
-          {footerLinks.map(({ href, label }) => (
-            <li>
-              <a
-                href={href}
-                class="text-sm text-gray-500 dark:text-gray-400 transition-colors hover:text-accent"
-              >
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
+<footer class="border-t border-base-300 bg-base-200">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="footer sm:footer-horizontal text-base-content py-10">
+      <nav>
+        <h6 class="footer-title">Explore</h6>
+        <a href="/blog" class="link link-hover">Essays</a>
+        <a href="/notes" class="link link-hover">Notes</a>
+        <a href="/tags" class="link link-hover">Topics</a>
+        <a href="/rss.xml" class="link link-hover">RSS Feed</a>
       </nav>
+      <nav>
+        <h6 class="footer-title">About</h6>
+        <a href="/about" class="link link-hover">About Us</a>
+        <a href="mailto:hello@digitaldivide.com" class="link link-hover">Contact</a>
+      </nav>
+      <nav>
+        <h6 class="footer-title">Legal</h6>
+        <a href="/privacy" class="link link-hover">Privacy Policy</a>
+      </nav>
+      <form action="/subscribe" method="get">
+        <h6 class="footer-title">Newsletter</h6>
+        <fieldset class="w-80">
+          <label class="text-sm">Get essays delivered to your inbox</label>
+          <div class="join mt-2">
+            <input
+              type="email"
+              name="email"
+              placeholder="your@email.com"
+              class="input input-bordered join-item"
+              aria-label="Email address"
+            />
+            <button type="submit" class="btn btn-primary join-item">Subscribe</button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+
+    <div class="border-t border-base-300 py-4">
+      <p class="text-sm text-base-content/70">&copy; {currentYear} Digital Divide. All rights reserved.</p>
     </div>
   </div>
 </footer>

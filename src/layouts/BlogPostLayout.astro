@@ -1,0 +1,119 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Container from '../components/Container.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  author: string;
+  publishDate: Date;
+  updatedDate?: Date;
+  tags: string[];
+  coverImage?: {
+    src: string;
+    alt: string;
+    caption?: string;
+  };
+  draft?: boolean;
+  readingTime: string;
+}
+
+const { title, description, author, publishDate, updatedDate, tags, coverImage, draft, readingTime } = Astro.props;
+
+const formattedDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={title} description={description}>
+  <article class="py-12 sm:py-16">
+    <Container narrow>
+      <header class="mb-10">
+        {draft && (
+          <span class="mb-3 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
+            Draft
+          </span>
+        )}
+        <h1 class="leading-tight">
+          {title}
+        </h1>
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-sm text-base-content/70">
+          <span>{author}</span>
+          <span aria-hidden="true">&middot;</span>
+          <time datetime={publishDate.toISOString()}>
+            {formattedDate}
+          </time>
+          {updatedDate && (
+            <>
+              <span aria-hidden="true">&middot;</span>
+              <time datetime={updatedDate.toISOString()}>
+                Updated: {updatedDate.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </time>
+            </>
+          )}
+          <span aria-hidden="true">&middot;</span>
+          <span>{readingTime}</span>
+        </div>
+        {tags.length > 0 && (
+          <div class="mt-4 flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <a
+                href={`/tags/${tag}`}
+              >
+                {tag}
+              </a>
+            ))}
+          </div>
+        )}
+      </header>
+
+      {coverImage && (
+        <figure class="mb-10 -mx-6 -mt-12 sm:-mx-12 sm:-mt-16">
+          <img
+            src={coverImage.src}
+            alt={coverImage.alt}
+            class="w-full object-cover aspect-video"
+            loading="eager"
+          />
+          {coverImage.caption && (
+            <figcaption class="mt-2 text-center text-sm text-base-content/70">
+              {coverImage.caption}
+            </figcaption>
+          )}
+        </figure>
+      )}
+
+      <div class="prose prose-lg max-w-none">
+        <slot />
+      </div>
+
+      <!-- Subscribe CTA -->
+      <aside class="mt-12 rounded-lg border border-base-300 bg-base-200 p-6 text-center">
+        <p class="font-medium">Enjoyed this essay?</p>
+        <p class="mt-1 text-sm text-base-content/70">
+          Subscribe to get new essays delivered to your inbox.
+        </p>
+        <a href="/subscribe" class="btn btn-primary btn-sm mt-4">
+          Subscribe
+        </a>
+      </aside>
+    </Container>
+  </article>
+
+  <footer class="border-t border-base-300 py-8">
+    <Container narrow>
+      <a
+        href="/blog"
+        class="text-primary hover:underline"
+      >
+        &larr; All essays
+      </a>
+    </Container>
+  </footer>
+</BaseLayout>
