@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
 import { getReadingTime } from '../../lib/reading-time';
+import { getRelatedPosts, getSeriesPosts } from '../../lib/related-posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => {
@@ -19,9 +20,16 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
+const slug = post.id.replace(/\.(mdx?|md)$/, '');
+const { Content, headings } = await post.render();
 
 const readingTime = getReadingTime(post.body ?? '');
+const relatedPosts = await getRelatedPosts(post, 3);
+
+// Get series posts if this post is part of a series
+const seriesPosts = post.data.series
+  ? await getSeriesPosts(post.data.series)
+  : [];
 ---
 
 <BlogPostLayout
@@ -34,6 +42,12 @@ const readingTime = getReadingTime(post.body ?? '');
   coverImage={post.data.coverImage}
   draft={post.data.draft}
   readingTime={readingTime}
+  headings={headings}
+  relatedPosts={relatedPosts}
+  series={post.data.series}
+  seriesPosts={seriesPosts}
+  currentPostId={post.id}
+  slug={slug}
 >
   <Content />
 </BlogPostLayout>

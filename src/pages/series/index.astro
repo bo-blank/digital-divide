@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/Container.astro';
+import { getAllSeries, getPostsBySeries } from '../../lib/content-utils';
+
+const allSeries = await getAllSeries();
+
+// Get post counts for each series
+const seriesWithCounts = await Promise.all(
+  allSeries.map(async (series) => {
+    const posts = await getPostsBySeries(series);
+    return {
+      name: series,
+      count: posts.length,
+      latestPost: posts[0],
+    };
+  })
+);
+
+// Format series name for display
+function formatSeriesName(name: string): string {
+  return name
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+---
+
+<BaseLayout
+  title="Series"
+  description="Explore multi-part essay series on technology, culture, and ideas."
+>
+  <section class="py-12 sm:py-16">
+    <Container>
+      <header class="mb-12">
+        <h1 class="text-3xl sm:text-4xl font-heading font-normal tracking-tight">
+          Series
+        </h1>
+        <p class="mt-3 text-base-content/70">
+          Multi-part explorations of complex topics.
+        </p>
+      </header>
+
+      {seriesWithCounts.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {seriesWithCounts.map(({ name, count, latestPost }) => (
+            <a
+              href={`/series/${name}`}
+              class="block p-6 bg-base-100 shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow group"
+            >
+              <h2 class="font-heading font-medium text-lg group-hover:text-primary transition-colors">
+                {formatSeriesName(name)}
+              </h2>
+              <p class="mt-1 text-sm text-base-content/60">
+                {count} {count === 1 ? 'part' : 'parts'}
+              </p>
+              {latestPost && (
+                <p class="mt-3 text-sm text-base-content/70 line-clamp-2">
+                  Latest: {latestPost.data.title}
+                </p>
+              )}
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p class="text-base-content/70 text-center py-12">
+          No series published yet. Check back soon.
+        </p>
+      )}
+    </Container>
+  </section>
+</BaseLayout>

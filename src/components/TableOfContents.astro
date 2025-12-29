@@ -1,0 +1,66 @@
+---
+export interface TocItem {
+  depth: number;
+  text: string;
+  slug: string;
+}
+
+interface Props {
+  headings: TocItem[];
+  title?: string;
+}
+
+const { headings, title = 'Contents' } = Astro.props;
+
+// Only show h2 and h3 headings in the ToC
+const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{filteredHeadings.length > 2 && (
+  <nav class="toc rounded-lg border border-base-300 bg-base-200/50 p-6" aria-labelledby="toc-heading">
+    <h2 id="toc-heading" class="mb-4 text-sm font-semibold uppercase tracking-wide text-base-content/70">
+      {title}
+    </h2>
+    <ol class="space-y-2 text-sm" role="list">
+      {filteredHeadings.map((heading) => (
+        <li
+          class:list={[
+            'toc-item',
+            { 'ml-4': heading.depth === 3 },
+          ]}
+        >
+          <a
+            href={`#${heading.slug}`}
+            class="block py-1 text-base-content/80 transition-colors hover:text-primary"
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}
+
+<style>
+  .toc {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .toc-item a {
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
+  }
+
+  .toc-item a:hover {
+    border-left-color: var(--color-primary, #A8BCA1);
+  }
+
+  /* For sticky positioning when used in sidebar */
+  @media (min-width: 1280px) {
+    .toc {
+      position: sticky;
+      top: 2rem;
+    }
+  }
+</style>

@@ -19,7 +19,7 @@ const trendingTopics = [
 const currentPath = Astro.url.pathname;
 ---
 
-<header class="fixed left-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out" style="background-color: var(--color-bg-subtle);" data-header>
+<header class="fixed left-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out" style="background-color: var(--color-bg-subtle);" data-header transition:persist>
   <nav class="mx-auto max-w-6xl px-4 py-4">
     <div class="relative flex items-center justify-center">
       <!-- Left side: Mobile menu -->
@@ -59,7 +59,7 @@ const currentPath = Astro.url.pathname;
       <!-- Center: Logo -->
       <a
         href="/"
-        class="font-heading text-xl font-semibold tracking-tight transition-opacity hover:opacity-70"
+        class="font-heading text-2xl font-semibold tracking-tight transition-opacity hover:opacity-70 sm:text-3xl"
         style="font-family: var(--font-heading);"
       >
         Digital Divide

@@ -1,0 +1,98 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  series: string;
+  posts: CollectionEntry<'blog'>[];
+  currentPostId: string;
+}
+
+const { series, posts, currentPostId } = Astro.props;
+
+// Find current post index
+const currentIndex = posts.findIndex((p) => p.id === currentPostId);
+const previousPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
+const nextPost = currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
+
+function getSlug(id: string): string {
+  return id.replace(/\.(mdx?|md)$/, '');
+}
+
+// Format series name for display (convert kebab-case to Title Case)
+function formatSeriesName(name: string): string {
+  return name
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+---
+
+{posts.length > 1 && (
+  <nav class="series-nav rounded-lg border border-base-300 bg-base-200/50 p-6" aria-label="Series navigation">
+    <div class="series-header mb-4">
+      <p class="text-xs uppercase tracking-wide text-base-content/60 mb-1">
+        Part of series
+      </p>
+      <p class="font-heading font-medium text-base">
+        {formatSeriesName(series)}
+      </p>
+      <p class="text-sm text-base-content/70 mt-1">
+        Part {currentIndex + 1} of {posts.length}
+      </p>
+    </div>
+
+    <div class="series-links space-y-3">
+      {previousPost && (
+        <a
+          href={`/blog/${getSlug(previousPost.id)}`}
+          class="series-link block group"
+        >
+          <span class="text-xs text-base-content/60 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Previous in series
+          </span>
+          <span class="text-sm text-primary group-hover:underline">
+            {previousPost.data.title}
+          </span>
+        </a>
+      )}
+
+      {nextPost && (
+        <a
+          href={`/blog/${getSlug(nextPost.id)}`}
+          class="series-link block group"
+        >
+          <span class="text-xs text-base-content/60 flex items-center gap-1">
+            Next in series
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </span>
+          <span class="text-sm text-primary group-hover:underline">
+            {nextPost.data.title}
+          </span>
+        </a>
+      )}
+
+      <a
+        href={`/series/${series}`}
+        class="inline-block mt-2 text-xs text-base-content/60 hover:text-primary transition-colors"
+      >
+        View all {posts.length} posts in series &rarr;
+      </a>
+    </div>
+  </nav>
+)}
+
+<style>
+  .series-link {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .series-link:last-of-type {
+    border-bottom: none;
+  }
+</style>

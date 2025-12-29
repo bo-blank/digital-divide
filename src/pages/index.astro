@@ -25,11 +25,14 @@ function formatDate(date: Date): string {
 <BaseLayout title="Digital Divide">
   <!-- Hero Section - New Yorker Style -->
   {featuredPost ? (
-    <a href={`/blog/${featuredPost.id.replace(/\.(mdx?|md)$/, '')}`} class="group block border-b border-base-300">
+    <a href={`/blog/${featuredPost.id.replace(/\.(mdx?|md)$/, '')}`} class="group block border-b border-base-300" data-astro-prefetch="load">
       <div class="grid lg:grid-cols-2 min-h-[70vh]">
         <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
           <article class="max-w-xl">
-            <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1] group-hover:underline">
+            <h1
+              class="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1] group-hover:underline"
+              transition:name={`post-title-${featuredPost.id.replace(/\.(mdx?|md)$/, '')}`}
+            >
               {featuredPost.data.title}
             </h1>
             <p class="mt-8 text-lg sm:text-xl leading-relaxed text-base-content/80">
@@ -102,7 +105,7 @@ function formatDate(date: Date): string {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
         <a href="/subscribe" class="transition-opacity">
-          Support independent journalism. Subscribe today &raquo;
+          Don't miss a post. Stay updated &raquo;
         </a>
       </div>
     </Container>
@@ -121,8 +124,8 @@ function formatDate(date: Date): string {
       {recentPosts.length > 0 ? (
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {recentPosts.map((post) => (
-            <a href={`/blog/${post.id.replace(/\.(mdx?|md)$/, '')}`} class="group card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
-              {post.data.coverImage && (
+            <a href={`/blog/${post.id.replace(/\.(mdx?|md)$/, '')}`} class="group card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow">
+              {post.data.coverImage ? (
                 <figure>
                   <img
                     src={post.data.coverImage.src}
@@ -131,9 +134,16 @@ function formatDate(date: Date): string {
                     loading="lazy"
                   />
                 </figure>
+              ) : (
+                <div class="h-48 w-full bg-primary/10 flex items-center justify-center">
+                  <span class="text-primary/30 text-4xl font-heading">DD</span>
+                </div>
               )}
               <div class="card-body">
-                <h3 class="card-title text-lg group-hover:underline">
+                <h3
+                  class="card-title text-lg group-hover:underline"
+                  transition:name={`post-title-${post.id.replace(/\.(mdx?|md)$/, '')}`}
+                >
                   {post.data.title}
                 </h3>
                 <p class="text-base-content/70 line-clamp-4 text-sm">
@@ -171,7 +181,7 @@ function formatDate(date: Date): string {
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recentNotes.map((note) => (
-            <article class="bg-base-100 shadow-sm hover:shadow-md transition-shadow rounded-lg p-4 group">
+            <article class="bg-base-100 shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow p-4 group">
               <a href={`/notes/${note.id.replace(/\.(mdx?|md)$/, '')}`} class="block">
                 {note.data.title ? (
                   <h3 class="font-medium group-hover:underline mb-2">
