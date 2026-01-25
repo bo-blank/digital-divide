@@ -1,7 +1,6 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
-import { getReadingTime } from '../../lib/reading-time';
 import { getRelatedPosts, getSeriesPosts } from '../../lib/related-posts';
 
 export async function getStaticPaths() {
@@ -10,7 +9,7 @@ export async function getStaticPaths() {
   });
 
   return posts.map((post) => ({
-    params: { slug: post.id.replace(/\.(mdx?|md)$/, '') },
+    params: { slug: post.id },
     props: { post },
   }));
 }
@@ -20,10 +19,10 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const slug = post.id.replace(/\.(mdx?|md)$/, '');
-const { Content, headings } = await post.render();
+const slug = post.id;
+const { Content, headings, remarkPluginFrontmatter } = await render(post);
 
-const readingTime = getReadingTime(post.body ?? '');
+const readingTime = remarkPluginFrontmatter?.readingTime ?? '';
 const relatedPosts = await getRelatedPosts(post, 3);
 
 // Get series posts if this post is part of a series

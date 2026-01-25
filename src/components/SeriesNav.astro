@@ -14,10 +14,6 @@ const currentIndex = posts.findIndex((p) => p.id === currentPostId);
 const previousPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
 const nextPost = currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
 
-function getSlug(id: string): string {
-  return id.replace(/\.(mdx?|md)$/, '');
-}
-
 // Format series name for display (convert kebab-case to Title Case)
 function formatSeriesName(name: string): string {
   return name
@@ -44,7 +40,7 @@ function formatSeriesName(name: string): string {
     <div class="series-links space-y-3">
       {previousPost && (
         <a
-          href={`/blog/${getSlug(previousPost.id)}`}
+          href={`/blog/${previousPost.id}`}
           class="series-link block group"
         >
           <span class="text-xs text-base-content/60 flex items-center gap-1">
@@ -61,7 +57,7 @@ function formatSeriesName(name: string): string {
 
       {nextPost && (
         <a
-          href={`/blog/${getSlug(nextPost.id)}`}
+          href={`/blog/${nextPost.id}`}
           class="series-link block group"
         >
           <span class="text-xs text-base-content/60 flex items-center gap-1">

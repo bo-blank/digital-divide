@@ -21,9 +21,6 @@ function formatDate(date: Date): string {
   });
 }
 
-function getSlug(id: string): string {
-  return id.replace(/\.(mdx?|md)$/, '');
-}
 ---
 
 <BaseLayout
@@ -51,7 +48,7 @@ function getSlug(id: string): string {
               <article class="card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow">
                 {post.data.coverImage ? (
                   <figure>
-                    <a href={`/blog/${getSlug(post.id)}`}>
+                    <a href={`/blog/${post.id}`}>
                       <img
                         src={post.data.coverImage.src}
                         alt={post.data.coverImage.alt}
@@ -62,7 +59,7 @@ function getSlug(id: string): string {
                   </figure>
                 ) : (
                   <div class="h-48 w-full bg-primary/10 flex items-center justify-center">
-                    <a href={`/blog/${getSlug(post.id)}`}>
+                    <a href={`/blog/${post.id}`}>
                       <span class="text-primary/30 text-4xl font-heading">DD</span>
                     </a>
                   </div>
@@ -73,7 +70,7 @@ function getSlug(id: string): string {
                       Draft
                     </span>
                   )}
-                  <a href={`/blog/${getSlug(post.id)}`} class="hover:text-primary transition-colors">
+                  <a href={`/blog/${post.id}`} class="hover:text-primary transition-colors">
                     <h2 class="card-title text-lg">
                       {post.data.title}
                     </h2>

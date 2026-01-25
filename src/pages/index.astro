@@ -3,7 +3,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
 import HeroImage from '../components/HeroImage.astro';
 import { getPublishedPosts, getPublishedNotes } from '../lib/content-utils';
-import { getWordCount } from '../lib/reading-time';
 
 const posts = await getPublishedPosts();
 const notes = await getPublishedNotes();
@@ -25,13 +24,13 @@ function formatDate(date: Date): string {
 <BaseLayout title="Digital Divide">
   <!-- Hero Section - New Yorker Style -->
   {featuredPost ? (
-    <a href={`/blog/${featuredPost.id.replace(/\.(mdx?|md)$/, '')}`} class="group block border-b border-base-300" data-astro-prefetch="load">
+    <a href={`/blog/${featuredPost.id}`} class="group block border-b border-base-300" data-astro-prefetch="load">
       <div class="grid lg:grid-cols-2 min-h-[70vh]">
         <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
           <article class="max-w-xl">
             <h1
               class="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1] group-hover:underline"
-              transition:name={`post-title-${featuredPost.id.replace(/\.(mdx?|md)$/, '')}`}
+              transition:name={`post-title-${featuredPost.id}`}
             >
               {featuredPost.data.title}
             </h1>
@@ -41,12 +40,9 @@ function formatDate(date: Date): string {
                 <span class="font-semibold"> {featuredPost.data.author}</span>
               )} reports.
             </p>
-            <div class="mt-8 flex items-center gap-4">
+            <div class="mt-8">
               <span class="btn btn-outline btn-primary">
                 Read
-              </span>
-              <span class="text-sm text-base-content/60">
-                {getWordCount(featuredPost.body ?? '')}
               </span>
             </div>
           </article>
@@ -124,7 +120,7 @@ function formatDate(date: Date): string {
       {recentPosts.length > 0 ? (
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {recentPosts.map((post) => (
-            <a href={`/blog/${post.id.replace(/\.(mdx?|md)$/, '')}`} class="group card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow">
+            <a href={`/blog/${post.id}`} class="group card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow">
               {post.data.coverImage ? (
                 <figure>
                   <img
@@ -142,7 +138,7 @@ function formatDate(date: Date): string {
               <div class="card-body">
                 <h3
                   class="card-title text-lg group-hover:underline"
-                  transition:name={`post-title-${post.id.replace(/\.(mdx?|md)$/, '')}`}
+                  transition:name={`post-title-${post.id}`}
                 >
                   {post.data.title}
                 </h3>
@@ -154,8 +150,6 @@ function formatDate(date: Date): string {
                     <time datetime={post.data.publishDate.toISOString()}>
                       {formatDate(post.data.publishDate)}
                     </time>
-                    <span aria-hidden="true">&middot;</span>
-                    <span>{getWordCount(post.body ?? '')}</span>
                   </div>
                 </div>
               </div>
@@ -182,7 +176,7 @@ function formatDate(date: Date): string {
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recentNotes.map((note) => (
             <article class="bg-base-100 shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow p-4 group">
-              <a href={`/notes/${note.id.replace(/\.(mdx?|md)$/, '')}`} class="block">
+              <a href={`/notes/${note.id}`} class="block">
                 {note.data.title ? (
                   <h3 class="font-medium group-hover:underline mb-2">
                     {note.data.title}

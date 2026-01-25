@@ -3,7 +3,6 @@ import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getAllSeries, getPostsBySeries } from '../../lib/content-utils';
-import { getReadingTime } from '../../lib/reading-time';
 
 export const getStaticPaths = (async () => {
   const allSeries = await getAllSeries();
@@ -33,10 +32,6 @@ function formatDate(date: Date): string {
     month: 'long',
     day: 'numeric',
   });
-}
-
-function getSlug(id: string): string {
-  return id.replace(/\.(mdx?|md)$/, '');
 }
 
 const seriesTitle = formatSeriesName(series);
@@ -70,7 +65,7 @@ const seriesTitle = formatSeriesName(series);
               </div>
 
               <article class="group">
-                <a href={`/blog/${getSlug(post.id)}`} class="block">
+                <a href={`/blog/${post.id}`} class="block">
                   <h2 class="font-heading font-medium text-xl group-hover:text-primary transition-colors">
                     {post.data.title}
                   </h2>
@@ -82,8 +77,6 @@ const seriesTitle = formatSeriesName(series);
                   <time datetime={post.data.publishDate.toISOString()}>
                     {formatDate(post.data.publishDate)}
                   </time>
-                  <span aria-hidden="true">&middot;</span>
-                  <span>{getReadingTime(post.body ?? '')}</span>
                 </div>
                 {post.data.tags.length > 0 && (
                   <div class="mt-3 flex flex-wrap gap-1">

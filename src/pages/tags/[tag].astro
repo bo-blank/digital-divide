@@ -2,7 +2,6 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getPublishedPosts } from '../../lib/content-utils';
-import { getReadingTime } from '../../lib/reading-time';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -66,7 +65,7 @@ function formatDate(date: Date): string {
         <div class="space-y-8">
           {posts.map((post) => (
             <article class="group">
-              <a href={`/blog/${post.id.replace(/\.(mdx?|md)$/, '')}`} class="block">
+              <a href={`/blog/${post.id}`} class="block">
                 <h2 class="text-xl font-semibold group-hover:text-primary transition-colors">
                   {post.data.title}
                 </h2>
@@ -77,8 +76,6 @@ function formatDate(date: Date): string {
                   <time datetime={post.data.publishDate.toISOString()}>
                     {formatDate(post.data.publishDate)}
                   </time>
-                  <span aria-hidden="true">&middot;</span>
-                  <span>{getReadingTime(post.body ?? '')}</span>
                 </div>
               </a>
             </article>

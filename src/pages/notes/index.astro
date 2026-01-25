@@ -38,7 +38,7 @@ function formatDate(date: Date): string {
         <div class="space-y-8">
           {notes.map((note) => (
             <article class="group border-l-2 border-base-300 pl-6 hover:border-primary transition-colors">
-              <a href={`/notes/${note.id.replace(/\.(mdx?|md)$/, '')}`} class="block">
+              <a href={`/notes/${note.id}`} class="block">
                 {note.data.draft && (
                   <span class="mb-2 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
                     Draft

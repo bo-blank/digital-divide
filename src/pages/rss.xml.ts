@@ -13,7 +13,7 @@ export async function GET(context: APIContext) {
       title: post.data.title,
       pubDate: post.data.publishDate,
       description: post.data.description,
-      link: `/blog/${post.id.replace(/\.(mdx?|md)$/, '')}/`,
+      link: `/blog/${post.id}/`,
       author: post.data.author,
       categories: post.data.tags,
     })),

@@ -16,9 +16,6 @@ function formatDate(date: Date): string {
   });
 }
 
-function getSlug(id: string): string {
-  return id.replace(/\.(mdx?|md)$/, '');
-}
 ---
 
 {posts.length > 0 && (
@@ -28,7 +25,7 @@ function getSlug(id: string): string {
       {posts.map((post) => (
         <article class="related-post group">
           {post.data.coverImage ? (
-            <a href={`/blog/${getSlug(post.id)}`} class="block aspect-video overflow-hidden rounded-lg mb-3">
+            <a href={`/blog/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3">
               <img
                 src={post.data.coverImage.src}
                 alt={post.data.coverImage.alt}
@@ -37,11 +34,11 @@ function getSlug(id: string): string {
               />
             </a>
           ) : (
-            <a href={`/blog/${getSlug(post.id)}`} class="block aspect-video overflow-hidden rounded-lg mb-3 bg-primary/10 flex items-center justify-center">
+            <a href={`/blog/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3 bg-primary/10 flex items-center justify-center">
               <span class="text-primary/30 text-2xl font-heading">DD</span>
             </a>
           )}
-          <a href={`/blog/${getSlug(post.id)}`} class="block">
+          <a href={`/blog/${post.id}`} class="block">
             <h3 class="font-heading font-medium text-base leading-snug group-hover:text-primary transition-colors">
               {post.data.title}
             </h3>
