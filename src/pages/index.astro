@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
-import HeroImage from '../components/HeroImage.astro';
+import PageBanner from '../components/PageBanner.astro';
 import { getPublishedPosts, getPublishedNotes } from '../lib/content-utils';
 
 const posts = await getPublishedPosts();
@@ -48,7 +48,7 @@ function formatDate(date: Date): string {
           </article>
         </div>
 
-        <HeroImage
+        <PageBanner
           variant="split"
           src={featuredPost.data.coverImage?.src ?? ''}
           alt={featuredPost.data.coverImage?.alt ?? ''}
@@ -58,7 +58,7 @@ function formatDate(date: Date): string {
               <div class="text-primary-content/20 text-9xl font-heading">DD</div>
             </div>
           )}
-        </HeroImage>
+        </PageBanner>
       </div>
     </a>
   ) : (

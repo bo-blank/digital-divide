@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
-import HeroImage from '../../components/HeroImage.astro';
+import PageBanner from '../../components/PageBanner.astro';
 import { getPublishedPosts } from '../../lib/content-utils';
 
 const posts = await getPublishedPosts();
@@ -18,13 +18,21 @@ posts.forEach((post) => {
 const sortedTags = Array.from(tagCounts.entries()).sort((a, b) =>
   a[0].localeCompare(b[0])
 );
+
+function formatTagDisplay(tag: string): string {
+  // Convert underscores and hyphens to spaces and capitalize each word
+  return tag
+    .split(/[_-]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 ---
 
 <BaseLayout
   title="Tags"
   description="Browse all topics and tags on Digital Divide."
 >
-  <HeroImage
+  <PageBanner
     src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&h=600&fit=crop"
     alt="Colorful retro vector illustration with bold shapes and neon colors"
   >
@@ -34,7 +42,7 @@ const sortedTags = Array.from(tagCounts.entries()).sort((a, b) =>
     <p class="mt-3 text-base text-base-content/80">
       Browse essays by topic.
     </p>
-  </HeroImage>
+  </PageBanner>
 
   <section class="py-12 sm:py-16">
     <Container>
@@ -45,7 +53,7 @@ const sortedTags = Array.from(tagCounts.entries()).sort((a, b) =>
               href={`/tags/${tag}`}
               class="flex items-center gap-2"
             >
-              <span>{tag}</span>
+              <span>{formatTagDisplay(tag)}</span>
               <span class="text-xs opacity-60">({count})</span>
             </a>
           ))}

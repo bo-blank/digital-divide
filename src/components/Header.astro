@@ -1,5 +1,6 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
+import { getPublishedPosts, getPublishedNotes } from '../lib/content-utils';
 
 const navLinks = [
   { href: '/blog', label: 'Essays' },
@@ -8,13 +9,43 @@ const navLinks = [
   { href: '/about', label: 'About' },
 ];
 
-const trendingTopics = [
-  { href: '/tags/technology', label: 'Technology' },
-  { href: '/tags/attention', label: 'Attention Economy' },
-  { href: '/tags/remote', label: 'Remote Work' },
-  { href: '/tags/culture', label: 'Digital Culture' },
-  { href: '/tags/society', label: 'Society' },
-];
+// Calculate trending tags based on recent content only
+const posts = await getPublishedPosts();
+const notes = await getPublishedNotes();
+
+// Only consider the 10 most recent posts and notes for trending
+const recentPosts = posts.slice(0, 10);
+const recentNotes = notes.slice(0, 10);
+
+const tagCounts = new Map<string, number>();
+recentPosts.forEach((post) => {
+  post.data.tags.forEach((tag) => {
+    tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+  });
+});
+recentNotes.forEach((note) => {
+  note.data.tags?.forEach((tag) => {
+    tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+  });
+});
+
+// Get top 5 most used tags from recent content
+const trendingTags = Array.from(tagCounts.entries())
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 5);
+
+function formatTagDisplay(tag: string): string {
+  // Convert underscores and hyphens to spaces and capitalize each word
+  return tag
+    .split(/[_-]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+const trendingTopics = trendingTags.map(([tag]) => ({
+  href: `/tags/${tag}`,
+  label: formatTagDisplay(tag),
+}));
 
 const currentPath = Astro.url.pathname;
 ---
