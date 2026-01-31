@@ -26,7 +26,7 @@ function formatDate(date: Date): string {
   <!-- Hero Section - New Yorker Style -->
   {featuredPost ? (
     <a href={`/blog/${featuredPost.id}`} class="group block border-b border-base-300" data-astro-prefetch="load">
-      <div class="grid lg:grid-cols-2 min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
+      <div class="grid lg:grid-cols-2 h-[50vh]">
         <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
           <article class="max-w-xl">
             <h1
@@ -64,7 +64,7 @@ function formatDate(date: Date): string {
     </a>
   ) : (
     <section class="border-b border-base-300">
-      <div class="grid lg:grid-cols-2 min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
+      <div class="grid lg:grid-cols-2 h-[50vh]">
         <!-- Left Column: Text -->
         <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
           <div class="max-w-xl">
