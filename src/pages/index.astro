@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
 import PageBanner from '../components/PageBanner.astro';
@@ -25,7 +26,7 @@ function formatDate(date: Date): string {
   <!-- Hero Section - New Yorker Style -->
   {featuredPost ? (
     <a href={`/blog/${featuredPost.id}`} class="group block border-b border-base-300" data-astro-prefetch="load">
-      <div class="grid lg:grid-cols-2 min-h-[70vh]">
+      <div class="grid lg:grid-cols-2 min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
         <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
           <article class="max-w-xl">
             <h1
@@ -63,7 +64,7 @@ function formatDate(date: Date): string {
     </a>
   ) : (
     <section class="border-b border-base-300">
-      <div class="grid lg:grid-cols-2 min-h-[70vh]">
+      <div class="grid lg:grid-cols-2 min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
         <!-- Left Column: Text -->
         <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
           <div class="max-w-xl">
@@ -84,7 +85,7 @@ function formatDate(date: Date): string {
         </div>
 
         <!-- Right Column: Image -->
-        <div class="relative bg-primary min-h-[50vh] lg:min-h-full">
+        <div class="relative bg-primary min-h-[40vh] sm:min-h-[50vh] lg:min-h-full">
           <div class="absolute inset-0 flex items-center justify-center">
             <div class="text-primary-content/20 text-9xl font-heading">DD</div>
           </div>
@@ -123,15 +124,17 @@ function formatDate(date: Date): string {
             <a href={`/blog/${post.id}`} class="group card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow">
               {post.data.coverImage ? (
                 <figure>
-                  <img
+                  <Image
                     src={post.data.coverImage.src}
                     alt={post.data.coverImage.alt}
-                    class="h-48 w-full object-cover"
+                    width={800}
+                    height={420}
+                    class="h-40 sm:h-48 w-full object-cover"
                     loading="lazy"
                   />
                 </figure>
               ) : (
-                <div class="h-48 w-full bg-primary/10 flex items-center justify-center">
+                <div class="h-40 sm:h-48 w-full bg-primary/10 flex items-center justify-center">
                   <span class="text-primary/30 text-4xl font-heading">DD</span>
                 </div>
               )}

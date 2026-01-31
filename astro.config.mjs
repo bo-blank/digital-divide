@@ -34,5 +34,12 @@ export default defineConfig({
       wrap: true,
     },
   },
-  integrations: [sitemap(), mdx()]
+  image: {
+    domains: ['images.unsplash.com'],
+  },
+  integrations: [sitemap({
+    filter: (page) => {
+      return !page.includes('/moodboard');
+    }
+  }), mdx()]
 });

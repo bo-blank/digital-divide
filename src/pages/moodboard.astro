@@ -1,0 +1,342 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/Container.astro';
+
+// Only allow access in dev mode
+if (!import.meta.env.DEV) {
+  return Astro.redirect('/');
+}
+
+interface MoodImage {
+  url: string;
+  title: string;
+  source: string;
+  colors: string[];
+}
+
+interface EssaySection {
+  title: string;
+  slug: string;
+  description: string;
+  images: MoodImage[];
+}
+
+const essaySections: EssaySection[] = [
+  {
+    title: 'The Remote Work Revolution Was Always Coming',
+    slug: 'remote-work-revolution',
+    description: 'Distributed work, home offices, collaboration, and the new geography of work.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&q=80',
+        title: 'Modern Workspace',
+        source: 'Unsplash',
+        colors: ['#2C3E50', '#3498DB', '#ECF0F1']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80',
+        title: 'Team Collaboration',
+        source: 'Unsplash',
+        colors: ['#3498DB', '#2980B9', '#1ABC9C']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&q=80',
+        title: 'Digital Nomad',
+        source: 'Unsplash',
+        colors: ['#9B59B6', '#8E44AD', '#6C3483']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=1200&q=80',
+        title: 'Home Office',
+        source: 'Unsplash',
+        colors: ['#F39C12', '#E74C3C', '#C0392B']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1200&q=80',
+        title: 'Global Connection',
+        source: 'Unsplash',
+        colors: ['#1ABC9C', '#16A085', '#17A589']
+      }
+    ]
+  },
+  {
+    title: 'The Tell: On Recognizing AI-Generated Writing',
+    slug: 'the-tell',
+    description: 'Artificial intelligence, patterns, human vs machine, and the evolution of writing.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80',
+        title: 'AI Neural Network',
+        source: 'Unsplash',
+        colors: ['#00D4FF', '#0051FF', '#001F54']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&q=80',
+        title: 'Digital Intelligence',
+        source: 'Unsplash',
+        colors: ['#667EEA', '#764BA2', '#6B46C1']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&q=80',
+        title: 'Human-Machine Interface',
+        source: 'Unsplash',
+        colors: ['#E63946', '#F1FAEE', '#A8DADC']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80',
+        title: 'Circuit Patterns',
+        source: 'Unsplash',
+        colors: ['#00B4D8', '#0077B6', '#03045E']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1200&q=80',
+        title: 'Code and Thought',
+        source: 'Unsplash',
+        colors: ['#2D3748', '#4A5568', '#718096']
+      }
+    ]
+  },
+  {
+    title: 'The Old New Internet: Can the Fediverse Deliver on Its Promise?',
+    slug: 'the-old-new-internet',
+    description: 'Decentralized networks, connection, nodes, and the architecture of social media.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80',
+        title: 'Network Grid',
+        source: 'Unsplash',
+        colors: ['#00F5D4', '#00BBF9', '#9B5DE5']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&q=80',
+        title: 'Connected Nodes',
+        source: 'Unsplash',
+        colors: ['#F72585', '#7209B7', '#3A0CA3']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&q=80',
+        title: 'Data Streams',
+        source: 'Unsplash',
+        colors: ['#03045E', '#0077B6', '#00B4D8']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&q=80',
+        title: 'Digital Web',
+        source: 'Unsplash',
+        colors: ['#06D6A0', '#118AB2', '#073B4C']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&q=80',
+        title: 'Cyber Connections',
+        source: 'Unsplash',
+        colors: ['#2C3E50', '#E74C3C', '#F39C12']
+      }
+    ]
+  },
+  {
+    title: 'Welcome to Digital Divide',
+    slug: 'test-post',
+    description: 'Technology and humanity, digital transformation, and the intersection of both.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&q=80',
+        title: 'Digital Bridge',
+        source: 'Unsplash',
+        colors: ['#06D6A0', '#118AB2', '#073B4C']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1531297461136-82lw9z2z9341?w=1200&q=80',
+        title: 'Digital Horizon',
+        source: 'Unsplash',
+        colors: ['#0F4C75', '#3282B8', '#BBE1FA']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1484662021405-7f649683e65d?w=1200&q=80',
+        title: 'Silhouette Tech',
+        source: 'Unsplash',
+        colors: ['#000000', '#1A1A1A', '#2C2C2C']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=1200&q=80',
+        title: 'Human Connection',
+        source: 'Unsplash',
+        colors: ['#F72585', '#7209B7', '#3A0CA3']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&q=80',
+        title: 'Retro Digital',
+        source: 'Unsplash',
+        colors: ['#FFD700', '#FF6B6B', '#4ECDC4']
+      }
+    ]
+  },
+  {
+    title: 'Gambling by Design: The Normalization of Sports Betting',
+    slug: 'gambling-by-design',
+    description: 'Neon lights, casinos, psychology of addiction, and the gaming industry.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=1200&q=80',
+        title: 'Neon Casino',
+        source: 'Unsplash',
+        colors: ['#E74C3C', '#C0392B', '#922B21']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&q=80',
+        title: 'Urban Lights',
+        source: 'Unsplash',
+        colors: ['#FF006E', '#8338EC', '#3A86FF']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=1200&q=80',
+        title: 'Sports Action',
+        source: 'Unsplash',
+        colors: ['#3498DB', '#2980B9', '#1ABC9C']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1200&q=80',
+        title: 'Night City',
+        source: 'Unsplash',
+        colors: ['#34495E', '#E74C3C', '#F39C12']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80',
+        title: 'Card Games',
+        source: 'Unsplash',
+        colors: ['#2C3E50', '#E67E22', '#F39C12']
+      }
+    ]
+  },
+  {
+    title: 'The Attention Economy: How We Became the Product',
+    slug: 'attention-economy',
+    description: 'Screens, notifications, digital distraction, and the battle for our focus.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=1200&q=80',
+        title: 'Night Scroll',
+        source: 'Unsplash',
+        colors: ['#2C3E50', '#E74C3C', '#F5F5F5']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&q=80',
+        title: 'Solitary Screen',
+        source: 'Unsplash',
+        colors: ['#2C3E50', '#E74C3C', '#F5F5F5']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=1200&q=80',
+        title: 'Fluid Distraction',
+        source: 'Unsplash',
+        colors: ['#F72585', '#7209B7', '#3A0CA3']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1200&q=80',
+        title: 'Creative Overload',
+        source: 'Unsplash',
+        colors: ['#E63946', '#F1FAEE', '#A8DADC']
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200&q=80',
+        title: 'Digital Focus',
+        source: 'Unsplash',
+        colors: ['#2D3436', '#636E72', '#B2BEC3']
+      }
+    ]
+  }
+];
+---
+
+<BaseLayout title="Moodboard (Dev Only)" description="Image selection moodboard for Digital Divide">
+  <Container class="py-8">
+    <div class="mb-8">
+      <h1 class="font-heading text-5xl font-normal tracking-tight leading-[1.1] mb-4">
+        Essay Image Moodboard
+      </h1>
+      <p class="text-lg text-base-content/70 max-w-2xl">
+        Curated collections of vibrant, striking, and emotional images for each essay, organized by theme.
+        Click any image to copy its URL to clipboard.
+      </p>
+    </div>
+
+    <div class="space-y-16">
+      {essaySections.map((section, sectionIndex) => (
+        <section id={section.slug}>
+          <div class="mb-6 border-b border-base-300 pb-4">
+            <h2 class="font-heading text-3xl font-normal tracking-tight leading-[1.1] mb-2">
+              {section.title}
+            </h2>
+            <p class="text-base-content/70">{section.description}</p>
+          </div>
+          
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {section.images.map((image, imageIndex) => (
+              <article
+                class="mood-card group bg-base-100 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+                data-section={sectionIndex}
+                data-image={imageIndex}
+                data-url={image.url}
+              >
+                <div class="relative aspect-[4/3] overflow-hidden bg-base-200">
+                  <img
+                    src={image.url}
+                    alt={image.title}
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <span class="text-white text-sm">Click to copy URL</span>
+                  </div>
+                </div>
+                <div class="p-4">
+                  <h3 class="font-heading text-lg group-hover:underline">{image.title}</h3>
+                  <p class="text-sm text-base-content/70 mt-1">{image.source}</p>
+                  <div class="mt-3 flex gap-1">
+                    {image.colors.map((color) => (
+                      <div
+                        class="w-6 h-6 rounded-sm border border-base-300"
+                        style={`background-color: ${color}`}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </Container>
+</BaseLayout>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    initializeMoodboard();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!document.querySelector('view-transitions')) {
+      initializeMoodboard();
+    }
+  });
+
+  function initializeMoodboard() {
+    const cards = document.querySelectorAll('.mood-card');
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const url = card.dataset.url;
+        
+        if (url) {
+          navigator.clipboard.writeText(url);
+          
+          card.classList.add('ring-2', 'ring-primary');
+          setTimeout(() => {
+            card.classList.remove('ring-2', 'ring-primary');
+          }, 1000);
+        }
+      });
+    });
+  }
+</script>

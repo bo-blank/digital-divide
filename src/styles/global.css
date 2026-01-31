@@ -173,6 +173,17 @@ html.dark {
   color-scheme: dark;
 }
 
+/* Header offset for fixed positioning */
+:root {
+  --header-height: 104px;
+}
+
+@media (max-width: 639px) {
+  :root {
+    --header-height: 96px;
+  }
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--color-bg);
@@ -362,7 +373,7 @@ article[class*="shadow"] {
 .prose:not(.prose-note) > p:first-of-type::first-letter {
   float: left;
   font-family: var(--font-heading);
-  font-size: 3.5em;
+  font-size: clamp(2.5em, 2em + 1.5vw, 3.5em);
   line-height: 0.8;
   padding-right: 0.1em;
   padding-top: 0.1em;
@@ -439,6 +450,18 @@ article[class*="shadow"] {
     0 10px 16px rgba(0, 0, 0, 0.3),
     0 24px 40px -8px rgba(0, 0, 0, 0.4),
     inset -12px -12px 16px -16px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 767px) {
+  .prose-note {
+    font-size: 1.1rem;
+    padding: 1.25rem 1rem 1.5rem;
+    transform: rotate(-1deg) translateX(-2px);
+  }
+
+  .prose-note:hover {
+    transform: rotate(-0.5deg) translateX(-1px) translateY(-1px);
+  }
 }
 
 @media (min-width: 768px) {
@@ -587,7 +610,7 @@ nav, .nav-link {
   --tw-prose-td-borders: var(--color-border);
 
   font-family: var(--font-body);
-  font-size: 1.125rem;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
   line-height: 1.8;
 }
 
@@ -682,6 +705,19 @@ a.group:hover {
 }
 
 /* ========================================
+   Utility: Hide scrollbar
+   ======================================== */
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
    Respect reduced motion preference
    ======================================== */
 
@@ -766,6 +802,13 @@ a[href^="/tags/"]:hover span,
   opacity: 0.7;
 }
 
+@media (max-width: 767px) {
+  .prose .heading-link::before {
+    position: static;
+    margin-right: 0.25em;
+  }
+}
+
 /* Smooth scroll to anchors */
 html {
   scroll-behavior: smooth;
@@ -793,8 +836,8 @@ html {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 0.375rem;
   background-color: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.7);
@@ -817,6 +860,12 @@ html {
 .copy-code-btn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+@media (hover: none) {
+  .copy-code-btn {
+    opacity: 0.7;
+  }
 }
 
 /* ========================================

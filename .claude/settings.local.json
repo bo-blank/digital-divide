@@ -21,7 +21,8 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: enhance UI with DaisyUI styling and add new content\n\nComponents:\n- Add HeroImage component for featured post imagery\n- Update Header with improved mobile menu and navigation\n- Update Footer with better layout and links\n- Update ThemeToggle, Container, and Callout components\n\nPages:\n- Redesign homepage with hero section and limit recent essays to 3\n- Update blog listing and individual post pages\n- Update notes listing and individual note pages\n- Improve tags index and individual tag pages\n- Enhance about, subscribe, and privacy pages\n\nContent:\n- Add new blog posts: gambling-by-design, the-old-new-internet, the-tell\n- Add new notes: ai-tells, scroll-depth\n- Update existing blog posts with cover images\n\nStyling:\n- Major global.css expansion with DaisyUI theme customization\n- Add custom typography and spacing utilities\n\nOther:\n- Add BlogPostLayout for consistent post rendering\n- Update reading-time utility\n- Add daisyui package dependency\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git commit:*)",
       "Bash(git fetch:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "WebFetch(domain:unsplash.com)"
     ],
     "deny": [],
     "ask": []

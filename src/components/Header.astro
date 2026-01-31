@@ -117,7 +117,7 @@ const currentPath = Astro.url.pathname;
         </ul>
 
         <!-- Subscribe Button -->
-        <a href="/subscribe" class="btn btn-primary btn-sm">
+        <a href="/subscribe" class="btn btn-primary btn-sm min-h-[44px]">
           Subscribe
         </a>
 
@@ -127,7 +127,7 @@ const currentPath = Astro.url.pathname;
     </div>
 
     <!-- Mobile Navigation -->
-    <ul class="hidden mt-4 border-t border-base-300 pt-4 sm:hidden" data-mobile-menu>
+    <ul class="mt-4 border-t border-base-300 pt-4 sm:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-out max-h-0 opacity-0" data-mobile-menu>
       {navLinks.map(({ href, label }) => (
         <li>
           <a
@@ -157,8 +157,8 @@ const currentPath = Astro.url.pathname;
   <!-- Trending Topics Bar -->
   <div class="border-t border-base-300 bg-base-200">
     <div class="mx-auto max-w-6xl px-4 py-2">
-      <div class="flex items-center justify-center gap-4">
-        <span class="flex items-center gap-2 text-sm font-medium text-secondary">
+      <div class="flex items-center gap-4 overflow-x-auto scrollbar-none">
+        <span class="flex items-center gap-2 text-sm font-medium text-secondary shrink-0">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
             <span class="relative inline-flex h-2 w-2 rounded-full bg-secondary"></span>
@@ -190,7 +190,16 @@ const currentPath = Astro.url.pathname;
     menuToggle?.addEventListener('click', () => {
       const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
       menuToggle.setAttribute('aria-expanded', String(!isExpanded));
-      mobileMenu?.classList.toggle('hidden');
+
+      if (mobileMenu instanceof HTMLElement) {
+        if (isExpanded) {
+          mobileMenu.style.maxHeight = '0';
+          mobileMenu.style.opacity = '0';
+        } else {
+          mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+          mobileMenu.style.opacity = '1';
+        }
+      }
     });
   }
 
@@ -226,10 +235,21 @@ const currentPath = Astro.url.pathname;
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
+  function syncHeaderHeight() {
+    const header = document.querySelector('[data-header]');
+    if (header) {
+      const height = header.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--header-height', `${height}px`);
+    }
+  }
+
   setupMobileMenu();
   setupScrollHeader();
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight, { passive: true });
   document.addEventListener('astro:after-swap', () => {
     setupMobileMenu();
     setupScrollHeader();
+    syncHeaderHeight();
   });
 </script>
