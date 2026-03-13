@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, passthroughImageService } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
@@ -35,7 +35,7 @@ export default defineConfig({
     },
   },
   image: {
-    domains: ['images.unsplash.com'],
+    service: passthroughImageService(),
   },
   integrations: [sitemap({
     filter: (page) => {

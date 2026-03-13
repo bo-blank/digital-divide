@@ -1,7 +1,7 @@
 # Claude Code Instructions for Digital Divide
 
 ## Project Overview
-Astro 5.x blog platform styled after The New Yorker. Uses Tailwind CSS 4.x, TypeScript strict mode, and MailerLite for newsletters.
+Astro 6.x blog platform styled after The New Yorker. Uses Tailwind CSS 4.x, TypeScript strict mode, and MailerLite for newsletters.
 
 ## Key Files
 - `ROADMAP.md` - Implementation phases and tasks
@@ -10,7 +10,7 @@ Astro 5.x blog platform styled after The New Yorker. Uses Tailwind CSS 4.x, Type
 ## Quick Reference
 
 ### Tech Stack
-- **Framework:** Astro 5.16.6
+- **Framework:** Astro 6.0.4
 - **Styling:** Tailwind CSS 4.1.17 + Typography plugin
 - **Content:** Astro Content Collections (MDX)
 - **Newsletter:** MailerLite API
