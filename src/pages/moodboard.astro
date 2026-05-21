@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
 
@@ -326,7 +325,7 @@ const essaySections: EssaySection[] = [
 
     cards.forEach(card => {
       card.addEventListener('click', () => {
-        const url = card.dataset.url;
+        const url = card instanceof HTMLElement ? card.dataset.url : undefined;
         
         if (url) {
           navigator.clipboard.writeText(url);

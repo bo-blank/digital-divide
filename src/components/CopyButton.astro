@@ -70,6 +70,7 @@
   function initCopyButtons() {
     // Find all code blocks and add copy buttons
     document.querySelectorAll('pre:not(.has-copy-btn)').forEach((pre) => {
+      if (!(pre instanceof HTMLElement)) return;
       pre.classList.add('has-copy-btn');
       pre.style.position = 'relative';
 

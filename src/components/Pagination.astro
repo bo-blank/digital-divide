@@ -78,7 +78,7 @@ function getPageUrl(page: number): string {
       </li>
 
       {/* Page numbers */}
-      {pageNumbers.map((page, index) => (
+      {pageNumbers.map((page) => (
         <li>
           {page === 'ellipsis' ? (
             <span class="pagination-ellipsis" aria-hidden="true">...</span>
