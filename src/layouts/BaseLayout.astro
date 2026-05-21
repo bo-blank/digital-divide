@@ -55,7 +55,7 @@ const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
   </head>
   <body class="min-h-screen flex flex-col">
     <Header />
-    <main class="flex-1 pt-[104px]" transition:animate="fade">
+    <main class="flex-1" style="padding-top: var(--header-height, 104px);" transition:animate="fade">
       <slot />
     </main>
     <Footer />

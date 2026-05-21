@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+
 interface Props {
   src?: string;
   alt?: string;
@@ -6,6 +8,7 @@ interface Props {
   class?: string;
   objectPosition?: string;
   height?: string;
+  loading?: 'eager' | 'lazy';
 }
 
 const {
@@ -14,22 +17,26 @@ const {
   variant = 'banner',
   class: className = '',
   objectPosition = 'center',
-  height = 'min-h-[50vh]',
+  height = 'min-h-[40vh] sm:min-h-[50vh]',
+  loading = 'eager',
 } = Astro.props;
 ---
 
 {variant === 'banner' ? (
-  <div class:list={['w-full bg-accent text-white py-1 px-4 flex items-center justify-center gap-4', className]}>
+  <div class:list={['w-full bg-accent text-white py-3 px-6 mt-4 flex items-center justify-center gap-4', className]}>
     <slot />
   </div>
 ) : (
   <div class:list={['relative bg-accent lg:min-h-full', height, className]}>
     {src && (
-      <img
+      <Image
         src={src}
         alt={alt}
+        width={1200}
+        height={630}
         class="absolute inset-0 w-full h-full object-cover"
         style={`object-position: ${objectPosition};`}
+        loading={loading}
       />
     )}
     <div class="absolute inset-0 bg-black/40"></div>

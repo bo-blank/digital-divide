@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Container from '../components/Container.astro';
@@ -59,9 +60,9 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
 ---
 
 <BaseLayout title={title} description={description}>
-  <article class="py-12 sm:py-16">
-    <Container narrow>
-      <header class="mb-10">
+  <article class="py-16 sm:py-20 lg:py-24">
+    <div class="mx-auto max-w-6xl px-6 sm:px-10 lg:px-16">
+      <header class="mb-12 max-w-3xl mx-auto">
         {draft && (
           <span class="mb-3 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
             Draft
@@ -95,7 +96,7 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
           <span>{readingTime}</span>
         </div>
         {tags.length > 0 && (
-          <div class="mt-4 flex flex-wrap gap-2">
+          <div class="mt-4 flex flex-wrap gap-2 max-w-3xl">
             {tags.map((tag) => (
               <a
                 href={`/tags/${tag}`}
@@ -108,17 +109,19 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
       </header>
 
       {coverImage && (
-        <figure class="mb-10 -mx-6 -mt-12 sm:-mx-12 sm:-mt-16">
-          <img
+        <figure class="mb-12 -mx-6 sm:-mx-10 lg:-mx-16">
+          <Image
             src={coverImage.src}
             alt={coverImage.alt}
+            width={1400}
+            height={800}
             class="w-full object-cover aspect-video"
             style={coverImage.position ? `object-position: ${coverImage.position};` : undefined}
             loading="eager"
             transition:name={slug ? `post-image-${slug}` : undefined}
           />
           {coverImage.caption && (
-            <figcaption class="mt-2 text-center text-sm text-base-content/70">
+            <figcaption class="mt-3 text-center text-sm text-base-content/70 px-6 sm:px-10 lg:px-16">
               {coverImage.caption}
             </figcaption>
           )}
@@ -127,29 +130,29 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
 
       {/* Table of Contents for long articles */}
       {headings.length > 3 && (
-        <div class="mb-10">
+        <div class="mb-12 max-w-3xl mx-auto">
           <TableOfContents headings={headings} />
         </div>
       )}
 
       {/* Series navigation */}
       {series && seriesPosts.length > 1 && currentPostId && (
-        <div class="mb-10">
+        <div class="mb-12 max-w-3xl mx-auto">
           <SeriesNav series={series} posts={seriesPosts} currentPostId={currentPostId} />
         </div>
       )}
 
-      <div class="prose prose-lg max-w-none">
+      <div class="prose prose-lg max-w-3xl mx-auto">
         <slot />
       </div>
 
       {/* Share buttons */}
-      <div class="mt-10 pt-6 border-t border-base-300">
+      <div class="mt-14 pt-8 border-t border-base-300 max-w-3xl mx-auto">
         <ShareButtons url={pageUrl} title={title} description={description} />
       </div>
 
       {/* Subscribe CTA */}
-      <aside class="mt-10 rounded-lg border border-base-300 bg-base-200 p-6 text-center">
+      <aside class="mt-12 max-w-3xl mx-auto rounded-lg border border-base-300 bg-base-200 p-8 text-center">
         <p class="font-medium">Enjoyed this essay?</p>
         <p class="mt-1 text-sm text-base-content/70">
           Subscribe to get new essays delivered to your inbox.
@@ -161,15 +164,15 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
 
       {/* Related posts */}
       {relatedPosts.length > 0 && (
-        <div class="mt-12">
+        <div class="mt-14 max-w-3xl mx-auto">
           <RelatedPosts posts={relatedPosts} />
         </div>
       )}
-    </Container>
+    </div>
   </article>
 
   <footer class="border-t border-base-300 py-8">
-    <Container narrow>
+    <Container>
       <a
         href="/blog"
         class="text-primary hover:underline"

@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+
 interface Props {
   src: string;
   alt: string;
@@ -8,7 +10,7 @@ interface Props {
   height?: number;
 }
 
-const { src, alt, caption, credit, width, height } = Astro.props;
+const { src, alt, caption, credit, width = 800, height = 450 } = Astro.props;
 
 if (!alt) {
   console.warn('Figure component: alt text is required for accessibility');
@@ -16,7 +18,7 @@ if (!alt) {
 ---
 
 <figure class="my-8">
-  <img
+  <Image
     src={src}
     alt={alt}
     width={width}

@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, passthroughImageService } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
@@ -34,5 +34,12 @@ export default defineConfig({
       wrap: true,
     },
   },
-  integrations: [sitemap(), mdx()]
+  image: {
+    service: passthroughImageService(),
+  },
+  integrations: [sitemap({
+    filter: (page) => {
+      return !page.includes('/moodboard');
+    }
+  }), mdx()]
 });

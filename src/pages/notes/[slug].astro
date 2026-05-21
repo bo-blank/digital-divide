@@ -64,7 +64,10 @@ const title = note.data.title || `Note from ${formattedDate}`;
           )}
         </header>
 
-        <div class="prose prose-note max-w-none">
+        <div
+          class="prose prose-note max-w-none"
+          data-color={note.data.color !== 'yellow' ? note.data.color : undefined}
+        >
           <Content />
         </div>
       </article>
