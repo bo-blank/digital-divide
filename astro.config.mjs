@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig, passthroughImageService } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
@@ -17,18 +18,20 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
   markdown: {
-    rehypePlugins: [
-      rehypeSlug,
-      [
-        rehypeAutolinkHeadings,
-        {
-          behavior: 'wrap',
-          properties: {
-            className: ['heading-link'],
+    processor: unified({
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: 'wrap',
+            properties: {
+              className: ['heading-link'],
+            },
           },
-        },
+        ],
       ],
-    ],
+    }),
     shikiConfig: {
       theme: 'github-dark',
       wrap: true,
