@@ -25,6 +25,25 @@ const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+
+    {/* Must stay here, first and render-blocking, before any stylesheet:
+        applying the theme any later lets the page paint light first, which
+        is a visible white flash for dark-mode readers on every cold load. */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored === 'dark' ||
+            (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          /* localStorage can throw in private mode; fall through to light. */
+        }
+      })();
+    </script>
+
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
 

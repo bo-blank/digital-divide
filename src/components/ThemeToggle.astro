@@ -42,19 +42,9 @@
 </button>
 
 <script is:inline>
-  // Initialize theme on page load (runs before paint to prevent flash)
-  (function() {
-    const stored = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (stored === 'dark' || (!stored && prefersDark)) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  })();
+  // Theme initialisation lives in BaseLayout's <head>, not here: this
+  // component renders inside <body>, so applying the theme from here meant
+  // the header had already painted in light mode before the class landed.
 
   // Theme toggle handler - use inline script to ensure it persists across transitions
   function handleThemeToggle() {
