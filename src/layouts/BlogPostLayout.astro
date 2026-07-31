@@ -7,6 +7,7 @@ import TableOfContents from '../components/TableOfContents.astro';
 import ShareButtons from '../components/ShareButtons.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
 import SeriesNav from '../components/SeriesNav.astro';
+import CopyButton from '../components/CopyButton.astro';
 import type { TocItem } from '../components/TableOfContents.astro';
 
 interface Props {
@@ -92,8 +93,12 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
               </time>
             </>
           )}
-          <span aria-hidden="true">&middot;</span>
-          <span>{readingTime}</span>
+          {readingTime && (
+            <>
+              <span aria-hidden="true">&middot;</span>
+              <span>{readingTime}</span>
+            </>
+          )}
         </div>
         {tags.length > 0 && (
           <div class="mt-4 flex flex-wrap gap-2 max-w-3xl">
@@ -171,7 +176,11 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
     </div>
   </article>
 
-  <footer class="border-t border-base-300 py-8">
+  <CopyButton />
+
+  <!-- <nav>, not <footer>: a <footer> with no sectioning ancestor maps to
+       role="contentinfo" and would collide with the site footer in BaseLayout. -->
+  <nav aria-label="Post navigation" class="border-t border-base-300 py-8">
     <Container>
       <a
         href="/blog"
@@ -180,5 +189,5 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
         &larr; All essays
       </a>
     </Container>
-  </footer>
+  </nav>
 </BaseLayout>

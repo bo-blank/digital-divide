@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
 import { getRelatedPosts, getSeriesPosts } from '../../lib/related-posts';
+import { getReadingTime } from '../../lib/reading-time';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => {
@@ -20,9 +21,12 @@ interface Props {
 
 const { post } = Astro.props;
 const slug = post.id;
-const { Content, headings, remarkPluginFrontmatter } = await render(post);
+const { Content, headings } = await render(post);
 
-const readingTime = remarkPluginFrontmatter?.readingTime ?? '';
+// Computed from the raw body rather than remark frontmatter: no remark plugin
+// writes `readingTime`, so the old remarkPluginFrontmatter lookup was always
+// undefined and rendered an empty string.
+const readingTime = post.body ? getReadingTime(post.body) : '';
 const relatedPosts = await getRelatedPosts(post, 3);
 
 // Get series posts if this post is part of a series
