@@ -3,28 +3,26 @@ import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getAllSeries, getPostsBySeries } from '../../lib/content-utils';
+import { slugify } from '../../lib/slugify';
 
 export const getStaticPaths = (async () => {
   const allSeries = await getAllSeries();
 
+  // The slug goes in the URL; the original frontmatter string rides along as a
+  // prop so the page can show "Future of Work" rather than re-title-casing
+  // "future-of-work" and guessing at the author's capitalisation.
   return allSeries.map((series) => ({
-    params: { series },
+    params: { series: slugify(series) },
+    props: { seriesName: series },
   }));
 }) satisfies GetStaticPaths;
 
 const { series } = Astro.params;
+const { seriesName } = Astro.props;
 const posts = await getPostsBySeries(series);
 
 // Sort by publish date (oldest first for series)
 posts.sort((a, b) => a.data.publishDate.valueOf() - b.data.publishDate.valueOf());
-
-// Format series name for display
-function formatSeriesName(name: string): string {
-  return name
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', {
@@ -34,7 +32,7 @@ function formatDate(date: Date): string {
   });
 }
 
-const seriesTitle = formatSeriesName(series);
+const seriesTitle = seriesName;
 ---
 
 <BaseLayout

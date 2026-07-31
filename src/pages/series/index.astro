@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getAllSeries, getPostsBySeries } from '../../lib/content-utils';
+import { slugify } from '../../lib/slugify';
 
 const allSeries = await getAllSeries();
 
@@ -45,7 +46,7 @@ function formatSeriesName(name: string): string {
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {seriesWithCounts.map(({ name, count, latestPost }) => (
             <a
-              href={`/series/${name}`}
+              href={`/series/${slugify(name)}/`}
               class="block p-6 bg-base-100 shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow group"
             >
               <h2 class="font-heading font-medium text-lg group-hover:text-primary transition-colors">

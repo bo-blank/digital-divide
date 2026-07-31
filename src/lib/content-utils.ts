@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { slugify } from './slugify';
 
 type BlogPost = CollectionEntry<'blog'>;
 type Note = CollectionEntry<'notes'>;
@@ -46,12 +47,16 @@ export async function getPostsByTag(tag: string): Promise<BlogPost[]> {
 }
 
 /**
- * Get posts filtered by series.
+ * Get posts filtered by series slug.
+ *
+ * Matches on the slug rather than the raw frontmatter string: series names
+ * are free text ("Future of Work"), and using them directly as route params
+ * produced URLs containing literal spaces.
  */
-export async function getPostsBySeries(series: string): Promise<BlogPost[]> {
+export async function getPostsBySeries(seriesSlug: string): Promise<BlogPost[]> {
   const posts = await getPublishedPosts();
   return posts.filter(
-    (post) => post.data.series?.toLowerCase() === series.toLowerCase()
+    (post) => post.data.series && slugify(post.data.series) === seriesSlug
   );
 }
 

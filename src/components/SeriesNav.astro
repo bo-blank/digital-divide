@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { slugify } from '../lib/slugify';
 
 interface Props {
   series: string;
@@ -73,7 +74,7 @@ function formatSeriesName(name: string): string {
       )}
 
       <a
-        href={`/series/${series}`}
+        href={`/series/${slugify(series)}/`}
         class="inline-block mt-2 text-xs text-base-content/60 hover:text-primary transition-colors"
       >
         View all {posts.length} posts in series &rarr;

@@ -1,22 +1,43 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
-import { getPublishedPosts } from '../../lib/content-utils';
+import { getPublishedPosts, getPublishedNotes } from '../../lib/content-utils';
 
 const posts = await getPublishedPosts();
+const notes = await getPublishedNotes();
 
-// Collect tags with counts and most recent post
-const tagData = new Map<string, { count: number; latestTitle: string; latestSlug: string }>();
-posts.forEach((post) => {
-  post.data.tags.forEach((tag) => {
-    if (!tagData.has(tag)) {
+// Notes are included because /tags/[tag] builds its routes from posts *and*
+// notes. Counting only posts here left every note-only tag with a live page
+// that this index never linked to, and undercounted any shared tag.
+const tagged: { tags: string[]; title: string; href: string; date: Date }[] = [
+  ...posts.map((p) => ({
+    tags: p.data.tags,
+    title: p.data.title,
+    href: `/blog/${p.id}/`,
+    date: p.data.publishDate,
+  })),
+  ...notes.map((n) => ({
+    tags: n.data.tags,
+    title: n.data.title ?? 'Untitled note',
+    href: `/notes/${n.id}/`,
+    date: n.data.publishDate,
+  })),
+].sort((a, b) => b.date.valueOf() - a.date.valueOf());
+
+// Collect tags with counts and most recent entry
+const tagData = new Map<string, { count: number; latestTitle: string; latestHref: string }>();
+tagged.forEach((entry) => {
+  entry.tags.forEach((tag) => {
+    const existing = tagData.get(tag);
+    if (!existing) {
+      // `tagged` is newest-first, so the first entry seen for a tag is its latest.
       tagData.set(tag, {
         count: 1,
-        latestTitle: post.data.title,
-        latestSlug: post.id,
+        latestTitle: entry.title,
+        latestHref: entry.href,
       });
     } else {
-      tagData.get(tag)!.count += 1;
+      existing.count += 1;
     }
   });
 });
@@ -26,7 +47,7 @@ interface TagEntry {
   tag: string;
   count: number;
   latestTitle: string;
-  latestSlug: string;
+  latestHref: string;
 }
 
 const entries: TagEntry[] = Array.from(tagData.entries())
