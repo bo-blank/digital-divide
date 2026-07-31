@@ -8,16 +8,33 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  ogType?: 'website' | 'article';
+  publishDate?: Date;
+  updatedDate?: Date;
+  author?: string;
 }
 
 const {
   title,
   description = 'Essays exploring the intersection of technology and humanity.',
   ogImage,
+  ogType = 'website',
+  publishDate,
+  updatedDate,
+  author,
 } = Astro.props;
 
 const siteTitle = 'Digital Divide';
 const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
+
+// Crawlers reject relative og:image values. `new URL` also passes through the
+// already-absolute Unsplash cover URLs unchanged.
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = ogImage ? new URL(ogImage, Astro.site).href : undefined;
+
+// Only promise a large image when there actually is one — an unfulfilled
+// summary_large_image renders as a blank card rather than falling back.
+const twitterCard = ogImageUrl ? 'summary_large_image' : 'summary';
 ---
 
 <!doctype html>
@@ -57,16 +74,31 @@ const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
       rel="stylesheet"
     />
 
+    <link rel="canonical" href={canonicalUrl} />
+
     <!-- Open Graph -->
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={siteTitle} />
+    <meta property="og:locale" content="en_US" />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+    {ogType === 'article' && publishDate && (
+      <meta property="article:published_time" content={publishDate.toISOString()} />
+    )}
+    {ogType === 'article' && updatedDate && (
+      <meta property="article:modified_time" content={updatedDate.toISOString()} />
+    )}
+    {ogType === 'article' && author && (
+      <meta property="article:author" content={author} />
+    )}
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content={twitterCard} />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{fullTitle}</title>

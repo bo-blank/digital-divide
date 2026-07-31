@@ -1,12 +1,15 @@
 ---
-import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
+import { getPublishedNotes } from '../../lib/content-utils';
 
 export async function getStaticPaths() {
-  const notes = await getCollection('notes', ({ data }) => {
-    return !data.draft || import.meta.env.DEV;
-  });
+  // getPublishedNotes rather than a bare getCollection draft filter: it also
+  // excludes future publishDates. Filtering only drafts here meant a scheduled
+  // note was hidden from every listing but still built, sitemapped and
+  // crawlable at its own URL.
+  const notes = await getPublishedNotes();
 
   return notes.map((note) => ({
     params: { slug: note.id },
@@ -28,9 +31,22 @@ const formattedDate = note.data.publishDate.toLocaleDateString('en-US', {
 });
 
 const title = note.data.title || `Note from ${formattedDate}`;
+
+// Without this every note inherited BaseLayout's generic site description,
+// giving the whole collection one duplicated meta description.
+const excerpt = note.body?.replace(/\s+/g, ' ').trim() ?? '';
+const description = excerpt
+  ? excerpt.slice(0, 155) + (excerpt.length > 155 ? '…' : '')
+  : title;
 ---
 
-<BaseLayout title={title}>
+<BaseLayout
+  title={title}
+  description={description}
+  ogType="article"
+  publishDate={note.data.publishDate}
+  updatedDate={note.data.updatedDate}
+>
   <section class="py-12 sm:py-16">
     <Container narrow>
       <article>
