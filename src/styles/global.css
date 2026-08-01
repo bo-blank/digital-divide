@@ -806,20 +806,18 @@ a[href^="/tags/"],
   @apply inline-block rounded-full bg-accent/10 text-accent px-3 py-1 text-xs transition-colors border-none;
 }
 
+/* text-accent-content rather than text-white: --color-accent is a bright teal
+   in dark mode, and its paired foreground is dark ink for exactly that reason.
+   Hardcoding white left the hover state at 1.86:1 there. */
 a[href^="/tags/"]:hover,
 .tag:hover {
-  @apply bg-accent text-white;
+  @apply bg-accent text-accent-content;
 }
 
-a[href^="/tags/"] span,
-.tag span {
-  @apply opacity-70;
-}
-
-a[href^="/tags/"]:hover span,
-.tag:hover span {
-  @apply opacity-100;
-}
+/* The blanket `a[href^="/tags/"] span { opacity: .7 }` that used to live here
+   was written for a count inside a pill, but no pill has ever had one. The
+   only thing it reached was the /tags index rows, where it dimmed an already
+   muted count to 2.67:1. That page now sets its own opacity. */
 
 /* ========================================
    Hero Text Box (light/dark mode)

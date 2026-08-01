@@ -213,16 +213,20 @@ function formatTagDisplay(tag: string): string {
   }
 
   /* Tag name in Fraunces, size set via inline style */
+  /* Was inherited from a global pill rule; set here now that it is gone. The
+     count deliberately does not get it — muted plus 70% put it under AA. */
   .tag-name {
     font-family: var(--font-heading);
     font-weight: 400;
     white-space: nowrap;
-    transition: color 0.2s ease;
+    opacity: 0.7;
+    transition: color 0.2s ease, opacity 0.2s ease;
   }
 
   .tag-entry:hover .tag-name,
   .tag-entry:focus-visible .tag-name {
     color: var(--color-accent);
+    opacity: 1;
   }
 
   /* Dot leader between name and count */

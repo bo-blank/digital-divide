@@ -886,6 +886,19 @@ Also fixed while in here:
 - `subscribe.astro`'s result messages got `role="status"` / `role="alert"`
   (listed under NS.1, done here since the form hides itself on submit and left
   screen reader users with no feedback at all)
+- Tag pills hardcoded `text-white` on `bg-accent`. `--color-accent` is a bright
+  teal in dark mode whose paired foreground is dark ink, so hovering a tag was
+  **1.86:1** there. Now `text-accent-content` (10.06:1). The blanket
+  `a[href^="/tags/"] span { opacity: .7 }` went with it: it was written for a
+  count inside a pill, but no pill has one, and the only thing it reached was
+  the `/tags` rows, where it dimmed an already-muted count to 2.67:1. That page
+  sets its own opacity now. All five tag states pass AA in both themes
+
+Known and not addressed: `PageBanner`'s `split` variant puts `text-white` over
+a `bg-black/40` scrim on a cover image. Contrast therefore depends on the
+photo — worst case (a white image) is 2.85:1. The current covers are dark
+enough, but a light one would break it; a stronger scrim or a gradient would
+make it image-independent.
 
 Not covered, and still open from Phase 7.2: screen reader testing with an
 actual AT, and automated axe-core checks (see NS.6 / Phase 7.4).
