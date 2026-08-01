@@ -14,7 +14,7 @@ const tagged: { tags: string[]; title: string; href: string; date: Date }[] = [
   ...posts.map((p) => ({
     tags: p.data.tags,
     title: p.data.title,
-    href: `/blog/${p.id}/`,
+    href: `/essays/${p.id}/`,
     date: p.data.publishDate,
   })),
   ...notes.map((n) => ({

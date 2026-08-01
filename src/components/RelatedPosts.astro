@@ -18,7 +18,7 @@ const { posts, title = 'You might also like' } = Astro.props;
       {posts.map((post) => (
         <article class="related-post group">
           {post.data.coverImage ? (
-            <a href={`/blog/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3">
+            <a href={`/essays/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3">
               <Image
                 src={post.data.coverImage.src}
                 alt={post.data.coverImage.alt}
@@ -31,11 +31,11 @@ const { posts, title = 'You might also like' } = Astro.props;
               />
             </a>
           ) : (
-            <a href={`/blog/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3 bg-primary/10 flex items-center justify-center">
+            <a href={`/essays/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3 bg-primary/10 flex items-center justify-center">
               <span class="text-primary/30 text-2xl font-heading">DD</span>
             </a>
           )}
-          <a href={`/blog/${post.id}`} class="block">
+          <a href={`/essays/${post.id}`} class="block">
             <h3 class="font-heading font-medium text-base leading-snug group-hover:text-primary transition-colors">
               {post.data.title}
             </h3>

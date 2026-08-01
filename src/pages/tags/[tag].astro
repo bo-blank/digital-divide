@@ -82,7 +82,7 @@ const { tag, posts, notes } = Astro.props;
               <div class="space-y-6">
                 {posts.map((post) => (
                   <article class="group">
-                    <a href={`/blog/${post.id}`} class="block">
+                    <a href={`/essays/${post.id}`} class="block">
                       <h3 class="text-lg font-semibold group-hover:text-primary transition-colors">
                         {post.data.title}
                       </h3>

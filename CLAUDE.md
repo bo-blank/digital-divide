@@ -119,7 +119,7 @@ export const POST: APIRoute = async ({ request }) => {
 #### Phase 3 — Core Blog
 
 - Layouts: `BaseLayout.astro`, `BlogPostLayout.astro`
-- Pages: `blog/[...page].astro` (listing + pagination), `blog/[slug].astro`
+- Pages: `essays/[...page].astro` (listing + pagination), `essays/[slug].astro`
 - Pages: `notes/index.astro`, `notes/[slug].astro`
 - Pages: `tags/index.astro`, `tags/[tag].astro`, `series/index.astro`, `series/[series].astro`
 - Pages: `about.astro`, `privacy.astro`, `subscribe.astro`, `rss.xml.ts`

@@ -10,7 +10,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 | Phase | Complete When |
 | --------- | ------------------ |
-| **Phase 1** | Content renders at `/blog/test-post`, reading time displays, drafts hidden in prod |
+| **Phase 1** | Content renders at `/essays/test-post`, reading time displays, drafts hidden in prod |
 | **Phase 2** | Typography matches design system, dark mode toggles correctly, all layouts responsive |
 | **Phase 3** | Blog archive paginated, ToC generates, related posts appear, RSS validates |
 | **Phase 4** | Newsletter signup works end-to-end with MailerLite, double opt-in confirmed |
@@ -207,7 +207,7 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 **Tasks:**
 
-- Create `/blog` index page with:
+- Create `/essays` index page with:
 - Featured post (latest or pinned)
 - Chronological list of posts with excerpts
 - Pagination (10-15 posts per page)
@@ -224,9 +224,9 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 
 **Files to create:**
 
-- `src/pages/blog/index.astro`
-- `src/pages/blog/[...page].astro` (pagination)
-- `src/pages/blog/[slug].astro` (individual posts)
+- `src/pages/essays/index.astro`
+- `src/pages/essays/[...page].astro` (pagination)
+- `src/pages/essays/[slug].astro` (individual posts)
 - `src/pages/notes/index.astro`
 - `src/pages/notes/[slug].astro`
 - `src/components/PostCard.astro`
@@ -703,12 +703,12 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 2. `tailwind.config.mjs` - Custom design tokens
 3. `src/layouts/BaseLayout.astro` - Master layout
 4. `src/styles/global.css` - Typography and color system
-5. `src/pages/blog/[slug].astro` - Blog post pages
+5. `src/pages/essays/[slug].astro` - Essay pages
 
 ### High Priority (Core Features)
 
 1. `src/layouts/BlogPost.astro` - Post reading experience
-2. `src/pages/blog/index.astro` - Blog archive
+2. `src/pages/essays/index.astro` - Essay archive
 3. `src/components/SubscribeForm.astro` - Newsletter signup
 4. `src/pages/index.astro` - Homepage redesign
 5. `src/components/Header.astro` - Navigation
@@ -845,7 +845,7 @@ Two things worth knowing, both follow-ups rather than regressions:
   own dimensions via `object-cover`, so height is better derived from the
   source
 - The dead `src`/`alt` props on the two `banner`-variant `PageBanner` call
-  sites (`/blog`, `/notes`) were removed — narrowing `src` to `ImageMetadata`
+  sites (`/essays`, `/notes`) were removed — narrowing `src` to `ImageMetadata`
   turned them into type errors. They rendered nothing, so this is invisible.
   The NS.4 question of whether those two pages *should* have hero images is
   still open
@@ -937,7 +937,7 @@ actual AT, and automated axe-core checks (see NS.6 / Phase 7.4).
   `<time datetime>` attribute still says the original. Extract one shared
   `formatDate()` using `timeZone: 'UTC'`
 - `src/content/blog/test-post.mdx` is real content ("Welcome to Digital
-  Divide") published at `/blog/test-post/`. Rename the file and add a redirect
+  Divide") published at `/essays/test-post/`. Rename the file and add a redirect
 - `/series` and `/series/*` are unreachable from the UI — no header or footer
   link, and `SeriesNav` only renders when a series has more than one post
 - `formatTagDisplay` is duplicated verbatim in `tags/index.astro` and
@@ -951,14 +951,14 @@ actual AT, and automated axe-core checks (see NS.6 / Phase 7.4).
 - RSS: add `<atom:link rel="self">` and `lastBuildDate`; `<author>` must be an
   email address per RSS 2.0, so use `<dc:creator>` for a name. Consider
   `content:encoded` for full-text, and syndicating notes
-- `Pagination.astro` builds `/blog/2` while Astro emits `/blog/2/`, costing a
+- `Pagination.astro` builds `/essays/2` while Astro emits `/essays/2/`, costing a
   redirect hop on hosts that enforce trailing slashes
 - `BlogPostLayout` renders the ToC wrapper when there are more than 3 headings,
   but `TableOfContents` only renders content for more than 2 h2/h3 — a post
   with 4 h4s gets an empty box
 - Decide on `PageBanner`: the `banner` variant accepted `src`/`alt` and
   silently discarded them. NS.2 dropped the props at the two call sites, so
-  what remains is the design call — should `/blog` and `/notes` have hero
+  what remains is the design call — should `/essays` and `/notes` have hero
   images, or is the teal strip deliberate?
 
 ### NS.5 Search (Phase 5.1)
@@ -998,7 +998,7 @@ by exactly one of four call sites. This is a full pass over
 
 **Structural cause.** `PostCard.astro` is in this roadmap's Phase 3.2 file list
 and was never built, so card markup is copy-pasted across
-`pages/index.astro`, `pages/blog/[...page].astro` and `RelatedPosts.astro`.
+`pages/index.astro`, `pages/essays/[...page].astro` and `RelatedPosts.astro`.
 Every field below that is "shown in some listings but not others" is a
 divergence between those three copies. Extracting the component is the fix that
 prevents the next one; the individual gaps are symptoms.
@@ -1045,3 +1045,25 @@ NS.4 records: `Header.astro`, `tags/index.astro`, `tags/[tag].astro`.
   detail-page-only flourish
 - `draft` badges and `author` on the remaining listings: worth doing as part of
   extracting `PostCard`, not before
+
+### NS.8 `/blog` renamed to `/essays`
+
+The nav, the footer and the page heading all said "Essays" while the URL said
+`/blog`. The routes now match the label: `src/pages/blog/` is
+`src/pages/essays/`, and all 20 internal links follow.
+
+The `blog` **collection** keeps its name — `getCollection('blog')`,
+`CollectionEntry<'blog'>` and `src/content/blog/` are unchanged. That is an
+internal identifier, not a URL, and renaming it would touch the schema, every
+utility and every post file for no user-visible gain.
+
+Old URLs still work. `redirects` in `astro.config.mjs` emits a static
+redirect page for `/blog/` and for each `/blog/<slug>/`, every one carrying
+`noindex` and a canonical pointing at the new URL, and the sitemap lists only
+`/essays/*`. Note the redirect targets omit the trailing slash Astro actually
+emits (`/essays/the-tell` → `/essays/the-tell/`), so hosts that enforce
+trailing slashes add one hop — the same wrinkle NS.4 records for `Pagination`,
+and worth fixing in the same pass.
+
+Verified by resolving all 1218 internal links in `dist` against the built
+files: none broken, and no `/blog` reference left in any real page.

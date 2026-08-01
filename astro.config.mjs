@@ -14,6 +14,14 @@ export default defineConfig({
     prefetchAll: false,
     defaultStrategy: 'hover',
   },
+  // The essays archive moved from /blog to /essays so the URL matches the
+  // "Essays" label the nav, the footer and the page heading all already used.
+  // These keep the old paths alive: any link, feed item or bookmark pointing
+  // at /blog still lands on the right page.
+  redirects: {
+    '/blog': '/essays',
+    '/blog/[slug]': '/essays/[slug]',
+  },
   vite: {
     plugins: [tailwindcss()]
   },

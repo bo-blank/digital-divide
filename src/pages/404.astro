@@ -24,7 +24,7 @@ const recentPosts = (await getPublishedPosts()).slice(0, 3);
 
       <div class="flex flex-wrap gap-3">
         <a href="/" class="btn btn-primary">Go home</a>
-        <a href="/blog" class="btn btn-outline btn-primary">Browse essays</a>
+        <a href="/essays" class="btn btn-outline btn-primary">Browse essays</a>
       </div>
 
       {recentPosts.length > 0 && (
@@ -33,7 +33,7 @@ const recentPosts = (await getPublishedPosts()).slice(0, 3);
           <ul class="mt-4 space-y-3">
             {recentPosts.map((post) => (
               <li>
-                <a href={`/blog/${post.id}`} class="text-primary hover:underline">
+                <a href={`/essays/${post.id}`} class="text-primary hover:underline">
                   {post.data.title}
                 </a>
               </li>

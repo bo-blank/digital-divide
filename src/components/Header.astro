@@ -4,7 +4,7 @@ import { getPublishedPosts, getPublishedNotes } from '../lib/content-utils';
 import { formatTagDisplay } from '../lib/format-tag';
 
 const navLinks = [
-  { href: '/blog', label: 'Essays' },
+  { href: '/essays', label: 'Essays' },
   { href: '/notes', label: 'Notes' },
   { href: '/tags', label: 'Tags' },
   { href: '/about', label: 'About' },
@@ -43,9 +43,10 @@ const trendingTopics = trendingTags.map(([tag]) => ({
 
 const currentPath = Astro.url.pathname;
 
-// Astro emits trailing slashes, so /blog/ and /blog/the-tell/ both count as
-// /blog while /blogroll would not. syncActiveNav() in the script below repeats
-// this exact predicate — the two must agree or the highlight flickers on load.
+// Astro emits trailing slashes, so /essays/ and /essays/the-tell/ both count as
+// /essays, while a sibling like /essays-archive would not. syncActiveNav() in
+// the script below repeats this exact predicate — the two must agree or the
+// highlight flickers on load.
 const isActive = (href: string) =>
   currentPath === href || currentPath.startsWith(`${href}/`);
 ---
