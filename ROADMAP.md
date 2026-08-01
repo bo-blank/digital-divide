@@ -987,3 +987,61 @@ Not started. See Phase 5.1 for the full task list — install Pagefind, add
 - Author pages (Phase 4.3) and `AuthorByline.astro` are still unbuilt, though
   `author` is populated on every post
 - E2E tests and Lighthouse CI (Phase 7.4) are still unbuilt
+
+### NS.7 Schema-field audit
+
+**Goal:** Every field the schema declares is either rendered or removed
+
+Prompted by `coverImage.position` turning out to be set in frontmatter and read
+by exactly one of four call sites. This is a full pass over
+`src/content.config.ts` against every surface that renders a post or a note.
+
+**Structural cause.** `PostCard.astro` is in this roadmap's Phase 3.2 file list
+and was never built, so card markup is copy-pasted across
+`pages/index.astro`, `pages/blog/[...page].astro` and `RelatedPosts.astro`.
+Every field below that is "shown in some listings but not others" is a
+divergence between those three copies. Extracting the component is the fix that
+prevents the next one; the individual gaps are symptoms.
+
+**Blog fields**
+
+| field | status |
+| --- | --- |
+| `title`, `publishDate`, `tags` | rendered everywhere |
+| `description` | everywhere except `RelatedPosts` (deliberate — those cards are title + date) |
+| `coverImage.src` / `.alt` | homepage, listing, detail, related. Absent from `/tags/*` and `/series/*`, which are text-only by design |
+| `coverImage.caption` | detail only — correct |
+| `coverImage.position` | **fixed** — was detail-only, now all four |
+| `updatedDate` | detail only. Not in RSS, which has no `lastBuildDate` either (NS.4) |
+| `author` | homepage, listing, detail, RSS. **Missing from `/series/*`, `/tags/*` and `RelatedPosts`** |
+| `draft` | badge on listing, blog detail, notes index, note detail. **Missing on homepage, `/tags/*`, `/series/*`, `RelatedPosts`.** Production-safe, since `getPublishedPosts` filters drafts; in `DEV` they render with no badge on those four |
+| `series` | detail only, via `SeriesNav`. Not on cards; `/series` is also unreachable from the UI (NS.4) |
+| `category` | **dead.** Set on every post, read only by `getPostsByCategory` and `getAllCategories`, which nothing imports. No route surfaces it |
+
+**Note fields**
+
+| field | status |
+| --- | --- |
+| `title`, `publishDate`, `tags` | rendered everywhere. `title` is optional; untitled notes get an `sr-only` h1 |
+| `updatedDate` | detail only |
+| `draft` | notes index and detail only — same DEV-only gap as above |
+| `color` | **detail only.** Every note carries one of six colours and the detail page renders it via `.prose-note[data-color]`, but `/notes` and the homepage list notes as plain rows and ignore it |
+
+**Dead exports** — seven, where NS.4 listed four:
+
+- Never imported: `getPostsByTag`, `getPostsByCategory`, `getAllCategories`,
+  `getAllTags`, `getAdjacentSeriesPosts`, `getWordCount`
+- `calculateReadingTime` is used internally by `getReadingTime`; only the
+  `export` is surplus
+
+**Duplication** — `formatTagDisplay` is copied in **three** files, not the two
+NS.4 records: `Header.astro`, `tags/index.astro`, `tags/[tag].astro`.
+
+**Decisions this needs**
+
+- `category`: build `/categories`, or drop the field from the schema and the
+  five posts that set it
+- note `color`: surface it in the listings, or accept that it is a
+  detail-page-only flourish
+- `draft` badges and `author` on the remaining listings: worth doing as part of
+  extracting `PostCard`, not before
