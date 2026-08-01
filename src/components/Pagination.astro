@@ -150,9 +150,13 @@ function getPageUrl(page: number): string {
     outline-offset: 2px;
   }
 
+  /* var(--color-accent-content), not white: the dark-mode accent is a bright
+     teal, so white here was 1.86:1 — the same defect as the tag pills. The
+     heavier weight is deliberate, it keeps the current page distinguishable
+     without relying on colour. */
   .pagination-btn.active {
     background-color: var(--color-accent);
-    color: white;
+    color: var(--color-accent-content);
     font-weight: 500;
   }
 
