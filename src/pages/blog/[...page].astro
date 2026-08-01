@@ -40,12 +40,23 @@ const { page } = Astro.props;
               <article class="card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow">
                 {post.data.coverImage ? (
                   <figure>
-                    <a href={`/blog/${post.id}`}>
+                    {/* block w-full on the anchor is load-bearing. daisyUI makes
+                        .card figure a flex container, so this <a> is the flex
+                        item, not the image. Left at width:auto it shrinks to
+                        fit, and since the image has a definite height (h-48)
+                        and a circular w-full, the browser sizes it from the
+                        cover's aspect ratio: a 1.9:1 cover happens to compute
+                        wider than the card and clamps to full width, but a
+                        square one lands at 192px in a 357px card. */}
+                    <a href={`/blog/${post.id}`} class="block w-full">
                       <Image
                         src={post.data.coverImage.src}
                         alt={post.data.coverImage.alt}
                         width={800}
                         class="h-48 w-full object-cover"
+                        style={post.data.coverImage.position
+                          ? `object-position: ${post.data.coverImage.position};`
+                          : undefined}
                         loading="lazy"
                       />
                     </a>

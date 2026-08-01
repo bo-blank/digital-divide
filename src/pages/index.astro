@@ -46,6 +46,7 @@ const recentNotes = notes.slice(0, 3);
           variant="split"
           src={featuredPost.data.coverImage?.src}
           alt={featuredPost.data.coverImage?.alt ?? ''}
+          objectPosition={featuredPost.data.coverImage?.position ?? 'center'}
         >
           {!featuredPost.data.coverImage && (
             <div class="absolute inset-0 flex items-center justify-center">
@@ -122,6 +123,9 @@ const recentNotes = notes.slice(0, 3);
                     alt={post.data.coverImage.alt}
                     width={800}
                     class="h-40 sm:h-48 w-full object-cover"
+                    style={post.data.coverImage.position
+                      ? `object-position: ${post.data.coverImage.position};`
+                      : undefined}
                     loading="lazy"
                   />
                 </figure>

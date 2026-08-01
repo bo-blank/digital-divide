@@ -24,6 +24,9 @@ const { posts, title = 'You might also like' } = Astro.props;
                 alt={post.data.coverImage.alt}
                 width={400}
                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                style={post.data.coverImage.position
+                  ? `object-position: ${post.data.coverImage.position};`
+                  : undefined}
                 loading="lazy"
               />
             </a>
