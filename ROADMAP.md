@@ -883,6 +883,14 @@ Also fixed while in here:
 - The header is `transition:persist`, so `setupMobileMenu()` re-bound a second
   click listener after every client-side navigation and each tap toggled twice,
   leaving the menu dead. Guarded with a `data-menu-bound` flag
+- Same root cause, second symptom: the active-page highlight is computed from
+  `Astro.url.pathname` at build time, but a persisted header keeps the markup
+  of whichever page was loaded first, so the highlight never moved on
+  client-side navigation — it was only ever right after a hard refresh.
+  `syncActiveNav()` reapplies it on `astro:after-swap`, and the links now carry
+  `aria-current="page"`, which they never had, so the current page was not
+  exposed to assistive tech at all. Verified over five client-side navigations,
+  a deep post URL and the back button
 - `subscribe.astro`'s result messages got `role="status"` / `role="alert"`
   (listed under NS.1, done here since the form hides itself on submit and left
   screen reader users with no feedback at all)

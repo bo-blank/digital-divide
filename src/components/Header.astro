@@ -48,6 +48,12 @@ const trendingTopics = trendingTags.map(([tag]) => ({
 }));
 
 const currentPath = Astro.url.pathname;
+
+// Astro emits trailing slashes, so /blog/ and /blog/the-tell/ both count as
+// /blog while /blogroll would not. syncActiveNav() in the script below repeats
+// this exact predicate — the two must agree or the highlight flickers on load.
+const isActive = (href: string) =>
+  currentPath === href || currentPath.startsWith(`${href}/`);
 ---
 
 <header class="fixed left-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out" style="background-color: var(--color-bg-subtle);" data-header transition:persist>
@@ -75,11 +81,11 @@ const currentPath = Astro.url.pathname;
           <li>
             <a
               href={href}
+              data-nav-link
+              aria-current={isActive(href) ? 'page' : undefined}
               class:list={[
                 'text-sm font-medium transition-colors hover:text-primary',
-                currentPath.startsWith(href)
-                  ? 'text-primary'
-                  : 'text-base-content/70',
+                isActive(href) ? 'text-primary' : 'text-base-content/70',
               ]}
             >
               {label}
@@ -104,11 +110,11 @@ const currentPath = Astro.url.pathname;
             <li>
               <a
                 href={href}
+                data-nav-link
+                aria-current={isActive(href) ? 'page' : undefined}
                 class:list={[
                   'text-sm font-medium transition-colors hover:text-primary',
-                  currentPath.startsWith(href)
-                    ? 'text-primary'
-                    : 'text-base-content/70',
+                  isActive(href) ? 'text-primary' : 'text-base-content/70',
                 ]}
               >
                 {label}
@@ -141,11 +147,11 @@ const currentPath = Astro.url.pathname;
         <li>
           <a
             href={href}
+            data-nav-link
+            aria-current={isActive(href) ? 'page' : undefined}
             class:list={[
               'block py-3 text-base font-medium transition-colors hover:text-primary',
-              currentPath.startsWith(href)
-                ? 'text-primary'
-                : 'text-base-content/70',
+              isActive(href) ? 'text-primary' : 'text-base-content/70',
             ]}
           >
             {label}
@@ -249,6 +255,24 @@ const currentPath = Astro.url.pathname;
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
+  // The header is transition:persist, so its DOM survives a client-side
+  // navigation and the active link stays frozen on whichever page was loaded
+  // first — the highlight only looked right after a hard refresh. Astro cannot
+  // re-render a persisted island, so the state is reapplied here. Must match
+  // the isActive() predicate in the frontmatter.
+  function syncActiveNav() {
+    const path = window.location.pathname;
+    document.querySelectorAll('[data-nav-link]').forEach((link) => {
+      const href = link.getAttribute('href');
+      if (!href) return;
+      const active = path === href || path.startsWith(`${href}/`);
+      link.classList.toggle('text-primary', active);
+      link.classList.toggle('text-base-content/70', !active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
   function syncHeaderHeight() {
     const header = document.querySelector('[data-header]');
     if (header) {
@@ -260,10 +284,12 @@ const currentPath = Astro.url.pathname;
   setupMobileMenu();
   setupScrollHeader();
   syncHeaderHeight();
+  syncActiveNav();
   window.addEventListener('resize', syncHeaderHeight, { passive: true });
   document.addEventListener('astro:after-swap', () => {
     setupMobileMenu();
     setupScrollHeader();
     syncHeaderHeight();
+    syncActiveNav();
   });
 </script>
