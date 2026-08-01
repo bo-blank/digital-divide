@@ -705,11 +705,16 @@ article[class*="shadow"] {
   }
 }
 
-/* :not(.btn) so the accent hover doesn't repaint a button's label the same
-   colour as its own background — see the header's Subscribe button. */
-nav a:not(.btn):hover,
-.nav-link:hover,
-header a:not(.btn):hover {
+/* The exclusions all exist for one reason: this rule repaints a link's text
+   accent, so anything that also takes an accent *background* on hover ends up
+   invisible. .btn was excluded for the header's Subscribe button; tag pills
+   have exactly the same shape and were not, so hovering a trending topic in
+   the header painted teal text on a teal pill — about 1:1. They are excluded
+   by class and by href because both forms exist in the markup.
+   Being later and more specific than the tag rule, this used to win. */
+nav a:not(.btn):not(.tag):not([href^="/tags/"]):hover,
+.nav-link:not(.tag):not([href^="/tags/"]):hover,
+header a:not(.btn):not(.tag):not([href^="/tags/"]):hover {
   color: var(--color-accent);
 }
 

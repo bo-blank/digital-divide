@@ -886,13 +886,27 @@ Also fixed while in here:
 - `subscribe.astro`'s result messages got `role="status"` / `role="alert"`
   (listed under NS.1, done here since the form hides itself on submit and left
   screen reader users with no feedback at all)
-- Tag pills hardcoded `text-white` on `bg-accent`. `--color-accent` is a bright
-  teal in dark mode whose paired foreground is dark ink, so hovering a tag was
-  **1.86:1** there. Now `text-accent-content` (10.06:1). The blanket
-  `a[href^="/tags/"] span { opacity: .7 }` went with it: it was written for a
-  count inside a pill, but no pill has one, and the only thing it reached was
-  the `/tags` rows, where it dimmed an already-muted count to 2.67:1. That page
-  sets its own opacity now. All five tag states pass AA in both themes
+- Tag pill hover took two passes. The first swapped a hardcoded `text-white`
+  for `text-accent-content` (dark-mode `--color-accent` is a bright teal whose
+  paired foreground is dark ink, so white was 1.86:1) and dropped the blanket
+  `a[href^="/tags/"] span { opacity: .7 }`, which was written for a count
+  inside a pill that has never existed and only ever reached the `/tags` rows,
+  dimming an already-muted count to 2.67:1.
+
+  That was not enough. `nav a:not(.btn):hover` / `header a:not(.btn):hover`
+  sits later in the same unlayered block and is more specific, so it won and
+  repainted the text `--color-accent` — on a pill that had just been given an
+  `--color-accent` background. **The real measured ratio was 1.00:1**: teal on
+  teal, invisible, in both themes. It hit body pills too, because
+  `header a` matches every `<header>`, including `BlogPostLayout`'s article
+  header. Tag pills are now excluded from that rule the same way `.btn`
+  already was — the exclusion exists precisely because a link that takes an
+  accent *background* on hover must not also take accent *text*.
+
+  Verified in Chrome with `:hover` forced via CDP rather than by reading the
+  stylesheet: header and body pills are now identical at 5.47:1 light and
+  10.06:1 dark. Reading CSS values is what let the 1.00:1 through the first
+  time, since it cannot see which rule wins.
 
 Known and not addressed: `PageBanner`'s `split` variant puts `text-white` over
 a `bg-black/40` scrim on a cover image. Contrast therefore depends on the
