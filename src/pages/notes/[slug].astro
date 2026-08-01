@@ -53,10 +53,16 @@ const description = excerpt
               Draft
             </span>
           )}
-          {note.data.title && (
+          {/* `title` is optional on notes, and an untitled one used to render
+              no h1 at all. The visible design for those is just the date, so
+              the fallback heading is exposed only to assistive tech rather
+              than repeating the date above itself. */}
+          {note.data.title ? (
             <h1>
               {note.data.title}
             </h1>
+          ) : (
+            <h1 class="sr-only">{title}</h1>
           )}
           <time
             datetime={note.data.publishDate.toISOString()}

@@ -850,32 +850,45 @@ Two things worth knowing, both follow-ups rather than regressions:
   The NS.4 question of whether those two pages *should* have hero images is
   still open
 
-### NS.3 Remaining accessibility (Phase 7.2)
+### ~~NS.3 Remaining accessibility (Phase 7.2)~~ — done
 
-**Goal:** Finish WCAG 2.1 AA
+All nine tasks are closed, plus a skip link and two things found on the way.
+Every one of the 39 real pages now has exactly one `h1`, no skipped heading
+levels, and no unlabelled `nav`.
 
-**Tasks:**
+- Contrast: the tokens are `#9E3B3B` and `#3D5C9E`. The old 3.99:1 / 3.79:1
+  figures were measured against the plain page background, but both are drawn
+  as text on their own 10-20% tint, where they were really 3.12:1 and 3.01:1 —
+  so the suggested `#B04545` would not have fixed it either, being 3.99:1 on
+  the tint. The new values clear 4.5:1 in all eight places the tokens are used
+- The collapsed mobile menu carries `inert`, toggled with `aria-expanded`
+- The menu button swaps its `aria-label` between Open/Close menu and points
+  `aria-controls` at `#mobile-menu`
+- `Footer.astro` column titles are `h2`, each naming its `nav` via
+  `aria-labelledby`
+- The orphan footer `<label>` is a `<p>` referenced by `aria-describedby`, so
+  it describes the field instead of competing with its `aria-label`
+- The subscribe privacy link is out of the `<label>`, so it no longer toggles
+  the consent checkbox
+- Untitled notes render an `sr-only` h1 (`Note from {date}`), keeping the
+  visible design as date-only
+- Decorative SVGs are `aria-hidden`. `ThemeToggle` and `Callout` already were
 
-- `--color-secondary` (3.99:1) and `--color-tertiary` (3.79:1) still fail AA for
-  text. `#B04545` brings secondary to 5.32:1. Affects the "Trending" label,
-  draft badges and the subscribe feature icons
-- The collapsed mobile menu uses `max-h-0 opacity-0`, neither of which removes
-  it from the tab order — five invisible links are focusable on mobile.
-  Add `hidden`/`inert` or toggle `visibility`
-- The menu button's `aria-label` is hardcoded "Open menu" and never updates, so
-  it announces "Open menu, expanded" when it is the close action. It also needs
-  `aria-controls`
-- `Footer.astro` uses `<h6>` for its column titles, skipping h3-h5 on all 40
-  pages. Should be `<h2>`
-- Add `aria-label` to the unlabelled `<nav>` landmarks (main nav, trending
-  topics, and three in the footer)
-- Add `aria-hidden="true"` to decorative SVGs in `Header.astro`, `index.astro`
-  and `subscribe.astro`
-- `Footer.astro` has an orphan `<label>` with no `for`, conflicting with the
-  input's `aria-label`
-- `subscribe.astro` nests a link inside a `<label>`, so clicking the privacy
-  link also toggles the consent checkbox
-- Notes have an optional `title`, so an untitled note renders with no `<h1>`
+Also fixed while in here:
+
+- **Skip link** (`.skip-link` in `global.css`, target `#main-content`). Its
+  absence was a WCAG 2.4.1 Bypass Blocks failure — Level A, so it was blocking
+  AA conformance regardless of the items above. Roughly ten header links
+  preceded the article on every page
+- The header is `transition:persist`, so `setupMobileMenu()` re-bound a second
+  click listener after every client-side navigation and each tap toggled twice,
+  leaving the menu dead. Guarded with a `data-menu-bound` flag
+- `subscribe.astro`'s result messages got `role="status"` / `role="alert"`
+  (listed under NS.1, done here since the form hides itself on submit and left
+  screen reader users with no feedback at all)
+
+Not covered, and still open from Phase 7.2: screen reader testing with an
+actual AT, and automated axe-core checks (see NS.6 / Phase 7.4).
 
 ### NS.4 Correctness & consistency
 

@@ -5,26 +5,32 @@ const currentYear = new Date().getFullYear();
 <footer class="border-t border-base-300 bg-base-200">
   <div class="mx-auto max-w-6xl px-4">
     <div class="footer sm:footer-horizontal text-base-content py-10">
-      <nav>
-        <h6 class="footer-title">Explore</h6>
+      {/* h2, not h6: these are the first headings under the page's h1 in
+          document order, so h6 skipped h2-h5 on all 40 pages. Each nav takes
+          its accessible name from its own heading. */}
+      <nav aria-labelledby="footer-explore">
+        <h2 id="footer-explore" class="footer-title">Explore</h2>
         <a href="/blog" class="link link-hover">Essays</a>
         <a href="/notes" class="link link-hover">Notes</a>
         <a href="/tags" class="link link-hover">Topics</a>
         <a href="/rss.xml" class="link link-hover">RSS Feed</a>
       </nav>
-      <nav>
-        <h6 class="footer-title">About</h6>
+      <nav aria-labelledby="footer-about">
+        <h2 id="footer-about" class="footer-title">About</h2>
         <a href="/about" class="link link-hover">About Us</a>
         <a href="mailto:hello@digitaldivide.com" class="link link-hover">Contact</a>
       </nav>
-      <nav>
-        <h6 class="footer-title">Legal</h6>
+      <nav aria-labelledby="footer-legal">
+        <h2 id="footer-legal" class="footer-title">Legal</h2>
         <a href="/privacy" class="link link-hover">Privacy Policy</a>
       </nav>
       <form action="/subscribe" method="get">
-        <h6 class="footer-title">Newsletter</h6>
+        <h2 class="footer-title">Newsletter</h2>
         <fieldset class="w-full max-w-80">
-          <label class="text-sm">Get essays delivered to your inbox</label>
+          {/* Was a <label> with no `for`, which both left it orphaned and
+              competed with the input's own aria-label. As a description it
+              supplements the accessible name instead of fighting it. */}
+          <p id="footer-newsletter-hint" class="text-sm">Get essays delivered to your inbox</p>
           <div class="join mt-2">
             <input
               type="email"
@@ -32,6 +38,7 @@ const currentYear = new Date().getFullYear();
               placeholder="your@email.com"
               class="input input-bordered join-item"
               aria-label="Email address"
+              aria-describedby="footer-newsletter-hint"
             />
             <button type="submit" class="btn btn-primary join-item">Subscribe</button>
           </div>

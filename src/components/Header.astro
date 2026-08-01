@@ -51,7 +51,7 @@ const currentPath = Astro.url.pathname;
 ---
 
 <header class="fixed left-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out" style="background-color: var(--color-bg-subtle);" data-header transition:persist>
-  <nav class="mx-auto max-w-6xl px-4 py-4">
+  <nav class="mx-auto max-w-6xl px-4 py-4" aria-label="Main">
     <div class="relative flex items-center justify-center">
       <!-- Left side: Mobile menu -->
       <div class="flex items-center sm:hidden">
@@ -60,9 +60,10 @@ const currentPath = Astro.url.pathname;
           class="p-2 -ml-2 text-base-content/70 transition-colors hover:text-base-content"
           aria-label="Open menu"
           aria-expanded="false"
+          aria-controls="mobile-menu"
           data-menu-toggle
         >
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-6 w-6" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -127,7 +128,15 @@ const currentPath = Astro.url.pathname;
     </div>
 
     <!-- Mobile Navigation -->
-    <ul class="mt-4 border-t border-base-300 pt-4 sm:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-out max-h-0 opacity-0" data-mobile-menu>
+    {/* `inert` as well as max-h-0: the collapsed menu is only visually
+        clipped, so without it these five links stay in the tab order and in
+        the accessibility tree on mobile. */}
+    <ul
+      id="mobile-menu"
+      class="mt-4 border-t border-base-300 pt-4 sm:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-out max-h-0 opacity-0"
+      inert
+      data-mobile-menu
+    >
       {navLinks.map(({ href, label }) => (
         <li>
           <a
@@ -156,7 +165,7 @@ const currentPath = Astro.url.pathname;
 
   <!-- Trending Topics Bar -->
   <div class="border-t border-base-300 bg-base-200">
-    <div class="mx-auto max-w-6xl px-4 py-2">
+    <nav class="mx-auto max-w-6xl px-4 py-2" aria-label="Trending topics">
       <div class="flex items-center justify-center gap-4 overflow-x-auto scrollbar-none">
         <span class="flex items-center gap-2 text-sm font-medium text-secondary shrink-0">
           <span class="relative flex h-2 w-2">
@@ -178,7 +187,7 @@ const currentPath = Astro.url.pathname;
           ))}
         </ul>
       </div>
-    </div>
+    </nav>
   </div>
 </header>
 
@@ -186,19 +195,24 @@ const currentPath = Astro.url.pathname;
   function setupMobileMenu() {
     const menuToggle = document.querySelector('[data-menu-toggle]');
     const mobileMenu = document.querySelector('[data-mobile-menu]');
+    if (!(menuToggle instanceof HTMLElement)) return;
 
-    menuToggle?.addEventListener('click', () => {
-      const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
-      menuToggle.setAttribute('aria-expanded', String(!isExpanded));
+    // The header is transition:persist, so after a client-side navigation this
+    // runs again against the same button. Without the guard it collects a
+    // second listener and every tap toggles twice, i.e. does nothing.
+    if (menuToggle.dataset.menuBound) return;
+    menuToggle.dataset.menuBound = 'true';
+
+    menuToggle.addEventListener('click', () => {
+      const willExpand = menuToggle.getAttribute('aria-expanded') !== 'true';
+      menuToggle.setAttribute('aria-expanded', String(willExpand));
+      // Otherwise it announces "Open menu, expanded" while it is the close action.
+      menuToggle.setAttribute('aria-label', willExpand ? 'Close menu' : 'Open menu');
 
       if (mobileMenu instanceof HTMLElement) {
-        if (isExpanded) {
-          mobileMenu.style.maxHeight = '0';
-          mobileMenu.style.opacity = '0';
-        } else {
-          mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
-          mobileMenu.style.opacity = '1';
-        }
+        mobileMenu.inert = !willExpand;
+        mobileMenu.style.maxHeight = willExpand ? mobileMenu.scrollHeight + 'px' : '0';
+        mobileMenu.style.opacity = willExpand ? '1' : '0';
       }
     });
   }
