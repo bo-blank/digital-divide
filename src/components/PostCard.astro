@@ -1,0 +1,87 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../lib/format-date';
+import { formatTagDisplay } from '../lib/format-tag';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  /** 2 under a page h1, 3 under a section h2. */
+  headingLevel?: 2 | 3;
+  /** Cover height. The homepage grid is shorter on small screens. */
+  imageHeightClass?: string;
+  maxTags?: number;
+  loading?: 'eager' | 'lazy';
+}
+
+const {
+  post,
+  headingLevel = 2,
+  imageHeightClass = 'h-48',
+  maxTags = 3,
+  loading = 'lazy',
+} = Astro.props;
+
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const { title, description, author, publishDate, tags, coverImage, draft } = post.data;
+const href = `/blog/${post.id}`;
+---
+
+<article
+  class="group card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow"
+>
+  {coverImage ? (
+    <figure>
+      {/* block w-full on the anchor is load-bearing. daisyUI makes .card figure
+          a flex container, so this <a> is the flex item, not the image. Left at
+          width:auto it shrinks to fit, and because the image has a definite
+          height and a circular w-full, the browser sizes it from the cover's
+          aspect ratio — a 1.9:1 cover computes wider than the card and clamps
+          to full width, but a square one lands at 192px in a 357px card. */}
+      <a href={href} class="block w-full">
+        <Image
+          src={coverImage.src}
+          alt={coverImage.alt}
+          width={800}
+          class={`${imageHeightClass} w-full object-cover`}
+          style={coverImage.position ? `object-position: ${coverImage.position};` : undefined}
+          loading={loading}
+        />
+      </a>
+    </figure>
+  ) : (
+    <div class={`${imageHeightClass} w-full bg-primary/10 flex items-center justify-center`}>
+      <a href={href}>
+        <span class="text-primary/30 text-4xl font-heading">DD</span>
+      </a>
+    </div>
+  )}
+
+  <div class="card-body">
+    {draft && (
+      <span class="badge badge-secondary badge-sm w-fit mb-2">Draft</span>
+    )}
+
+    <a href={href} class="hover:text-primary transition-colors">
+      <Heading class="card-title text-lg group-hover:underline" transition:name={`post-title-${post.id}`}>
+        {title}
+      </Heading>
+    </a>
+
+    <p class="text-base-content/70 line-clamp-3 text-sm">{description}</p>
+
+    <div class="mt-auto pt-4 flex flex-wrap items-center gap-2 text-xs text-base-content/70">
+      <span>{author}</span>
+      <span aria-hidden="true">&middot;</span>
+      <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
+    </div>
+
+    {tags.length > 0 && (
+      <div class="flex flex-wrap gap-1 mt-2">
+        {tags.slice(0, maxTags).map((tag) => (
+          <a href={`/tags/${tag}`}>{formatTagDisplay(tag)}</a>
+        ))}
+      </div>
+    )}
+  </div>
+</article>

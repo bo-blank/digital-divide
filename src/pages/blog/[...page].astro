@@ -1,12 +1,11 @@
 ---
 import type { GetStaticPaths } from 'astro';
-import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import PageBanner from '../../components/PageBanner.astro';
 import Pagination from '../../components/Pagination.astro';
+import PostCard from '../../components/PostCard.astro';
 import { getPublishedPosts } from '../../lib/content-utils';
-import { formatDate } from '../../lib/format-date';
 
 export const getStaticPaths = (async ({ paginate }) => {
   const posts = await getPublishedPosts();
@@ -37,69 +36,7 @@ const { page } = Astro.props;
         <>
           <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {page.data.map((post) => (
-              <article class="card bg-base-100 rounded-none shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow">
-                {post.data.coverImage ? (
-                  <figure>
-                    {/* block w-full on the anchor is load-bearing. daisyUI makes
-                        .card figure a flex container, so this <a> is the flex
-                        item, not the image. Left at width:auto it shrinks to
-                        fit, and since the image has a definite height (h-48)
-                        and a circular w-full, the browser sizes it from the
-                        cover's aspect ratio: a 1.9:1 cover happens to compute
-                        wider than the card and clamps to full width, but a
-                        square one lands at 192px in a 357px card. */}
-                    <a href={`/blog/${post.id}`} class="block w-full">
-                      <Image
-                        src={post.data.coverImage.src}
-                        alt={post.data.coverImage.alt}
-                        width={800}
-                        class="h-48 w-full object-cover"
-                        style={post.data.coverImage.position
-                          ? `object-position: ${post.data.coverImage.position};`
-                          : undefined}
-                        loading="lazy"
-                      />
-                    </a>
-                  </figure>
-                ) : (
-                  <div class="h-48 w-full bg-primary/10 flex items-center justify-center">
-                    <a href={`/blog/${post.id}`}>
-                      <span class="text-primary/30 text-4xl font-heading">DD</span>
-                    </a>
-                  </div>
-                )}
-                <div class="card-body">
-                  {post.data.draft && (
-                    <span class="badge badge-secondary badge-sm w-fit mb-2">
-                      Draft
-                    </span>
-                  )}
-                  <a href={`/blog/${post.id}`} class="hover:text-primary transition-colors">
-                    <h2 class="card-title text-lg">
-                      {post.data.title}
-                    </h2>
-                  </a>
-                  <p class="text-base-content/70 line-clamp-3 text-sm">
-                    {post.data.description}
-                  </p>
-                  <div class="mt-auto pt-4 flex flex-wrap items-center gap-2 text-xs text-base-content/70">
-                    <span>{post.data.author}</span>
-                    <span aria-hidden="true">&middot;</span>
-                    <time datetime={post.data.publishDate.toISOString()}>
-                      {formatDate(post.data.publishDate)}
-                    </time>
-                  </div>
-                  {post.data.tags.length > 0 && (
-                    <div class="flex flex-wrap gap-1 mt-2">
-                      {post.data.tags.slice(0, 3).map((tag) => (
-                        <a href={`/tags/${tag}`}>
-                          {tag}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </article>
+              <PostCard post={post} headingLevel={2} />
             ))}
           </div>
 
