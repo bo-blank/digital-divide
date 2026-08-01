@@ -14,10 +14,16 @@
 
 /* Design tokens using CSS custom properties */
 @theme {
-  /* Typography - Font Families */
-  --font-heading: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-body: "Lora", Georgia, "Times New Roman", serif;
-  --font-ui: "Inter", system-ui, -apple-system, sans-serif;
+  /* Typography - Font Families.
+     The --font-fraunces / --font-lora / --font-inter / --font-caveat variables
+     are emitted by Astro's <Font> component in BaseLayout (see the `fonts`
+     array in astro.config.mjs), which self-hosts the files and appends
+     metric-adjusted fallbacks. The literal stacks here are a last resort for
+     the case where that <style> never lands. */
+  --font-heading: var(--font-fraunces, "Fraunces"), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-lora, "Lora"), Georgia, "Times New Roman", serif;
+  --font-ui: var(--font-inter, "Inter"), system-ui, -apple-system, sans-serif;
+  --font-note: var(--font-caveat, "Caveat"), "Segoe Print", "Bradley Hand", cursive;
 
   /* Light mode colors (default) */
   --color-bg: #FAFAF8;
@@ -395,7 +401,7 @@ article[class*="shadow"] {
   --note-text: #422006;
   --note-line: rgba(66, 32, 6, 0.08);
 
-  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-family: var(--font-note);
   font-weight: 500;
   font-size: 1.25rem;
   line-height: 1.6;

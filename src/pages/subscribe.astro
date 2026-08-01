@@ -1,6 +1,8 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
+import subscribeHero from '../assets/subscribe-hero.jpg';
 ---
 
 <BaseLayout
@@ -9,10 +11,13 @@ import Container from '../components/Container.astro';
 >
   <!-- Hero Image -->
   <div class="relative h-64 sm:h-80 w-full overflow-hidden">
-    <img
-      src="https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?w=1600&h=600&fit=crop"
+    <Image
+      src={subscribeHero}
       alt="Person reading on a tablet with coffee, representing newsletter reading"
+      widths={[800, 1200, 1600, 2400]}
+      sizes="100vw"
       class="h-full w-full object-cover"
+      loading="eager"
     />
     <div class="absolute inset-0 bg-linear-to-t from-base-100 to-transparent"></div>
   </div>

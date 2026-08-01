@@ -5,7 +5,11 @@ import { slugify } from './lib/slugify';
 
 const blogCollection = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
-  schema: z.object({
+  // Function form so `image()` is in scope: cover images are local assets under
+  // src/assets/covers, which lets Astro resize and re-encode them. They used to
+  // be hotlinked Unsplash URLs — unoptimisable, uncached, and a reader-IP leak
+  // to a third party on every page view.
+  schema: ({ image }) => z.object({
     title: z.string(),
     description: z.string(),
     publishDate: z.coerce.date(),
@@ -22,7 +26,7 @@ const blogCollection = defineCollection({
     series: z.string().optional(),
     category: z.string().optional(),
     coverImage: z.object({
-      src: z.string(),
+      src: image(),
       alt: z.string(),
       caption: z.string().optional(),
       position: z.string().optional(),

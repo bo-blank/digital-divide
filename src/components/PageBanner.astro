@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 
 interface Props {
-  src?: string;
+  src?: ImageMetadata;
   alt?: string;
   variant?: 'banner' | 'split';
   class?: string;
@@ -33,7 +33,6 @@ const {
         src={src}
         alt={alt}
         width={1200}
-        height={630}
         class="absolute inset-0 w-full h-full object-cover"
         style={`object-position: ${objectPosition};`}
         loading={loading}

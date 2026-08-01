@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getPublishedPosts, getPublishedNotes } from '../../lib/content-utils';
+import { formatDate } from '../../lib/format-date';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -38,14 +39,6 @@ interface Props {
 }
 
 const { tag, posts, notes } = Astro.props;
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 
 function formatTagDisplay(tag: string): string {
   // Convert underscores and hyphens to spaces and capitalize each word

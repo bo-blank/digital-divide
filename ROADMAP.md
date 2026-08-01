@@ -813,27 +813,42 @@ have to type it a second time.
 **Files to create:** `src/lib/mailerlite.ts`, `src/pages/api/subscribe.ts`
 **Files to modify:** `astro.config.mjs`, `src/pages/subscribe.astro`, `src/components/Footer.astro`
 
-### NS.2 Images & fonts (Phase 6.1)
+### ~~NS.2 Images & fonts (Phase 6.1)~~ — done
 
-**Goal:** Stop shipping oversized assets and third-party font requests
+All five tasks are closed. `dist` now contains no reference to any external
+host: no `fonts.googleapis.com`, no `fonts.gstatic.com`, no
+`images.unsplash.com`.
 
-**Tasks:**
+- `passthroughImageService()` removed; the default sharp service now resizes
+  and re-encodes to WebP
+- The about photo is `src/assets/divide-gap-person.jpg` (1600x1600, no spaces
+  in the name). `/about` went from 766KB to 11KB
+- `public/og-default.png` is a branded 1200x630 card built from the design
+  tokens; regenerate with `npm run og` (`scripts/generate-og-image.mjs`, which
+  fetches the two fonts into a temp dir so nothing extra is committed).
+  `BaseLayout` falls back to it, so `summary_large_image` is now unconditional
+  and every page has `og:image:width/height/alt`. Posts with a cover get a
+  1200x630 JPEG crop via `getImage`
+- All four families are self-hosted through Astro 7's `fonts` config (six
+  variable woff2 files, 284KB total, `display: swap`, metric-adjusted
+  fallbacks). Only the 400-weight upright Fraunces and Lora faces preload.
+  Note this makes builds require network access on a cold font cache
+- The five Unsplash covers plus the `/subscribe` hero are local assets;
+  `coverImage.src` is now `image()` in `src/content.config.ts` rather than a
+  URL string
 
-- Replace `passthroughImageService()` in `astro.config.mjs` — it disables all
-  optimisation, so nothing is resized or converted
-- `public/images/Divide gap person.jpg` is 5000x5000 and 766KB, served
-  full-size on `/about`. Resize, convert, and rename it (the filename contains
-  spaces, which is why the built path does too)
-- Add a default 1200x630 OG image. Pages without a cover image currently fall
-  back to a text-only social card; the existing photo is square and unusable
-  for this
-- Self-host Fraunces / Lora / Inter / Caveat instead of linking Google Fonts.
-  Two reasons: the stylesheet is render-blocking in `<head>`, and hotlinking
-  Google Fonts has been held to breach GDPR in German courts — relevant given
-  the site ships a privacy policy
-- Consider hosting the Unsplash cover images locally; all five posts hotlink them
+Two things worth knowing, both follow-ups rather than regressions:
 
-**Files to modify:** `astro.config.mjs`, `src/layouts/BaseLayout.astro`, `src/pages/about.astro`
+- Explicit `height` was dropped from every `<Image>` except the OG crop. With
+  real optimisation, `width` + `height` would have squashed sources whose
+  aspect differs from the box; every one of those containers already fixes its
+  own dimensions via `object-cover`, so height is better derived from the
+  source
+- The dead `src`/`alt` props on the two `banner`-variant `PageBanner` call
+  sites (`/blog`, `/notes`) were removed — narrowing `src` to `ImageMetadata`
+  turned them into type errors. They rendered nothing, so this is invisible.
+  The NS.4 question of whether those two pages *should* have hero images is
+  still open
 
 ### NS.3 Remaining accessibility (Phase 7.2)
 
@@ -893,9 +908,10 @@ have to type it a second time.
 - `BlogPostLayout` renders the ToC wrapper when there are more than 3 headings,
   but `TableOfContents` only renders content for more than 2 h2/h3 — a post
   with 4 h4s gets an empty box
-- Decide on `PageBanner`: the `banner` variant accepts `src`/`alt` and silently
-  discards them. Either drop the props at the two call sites or render the
-  image. The teal strip currently looks deliberate
+- Decide on `PageBanner`: the `banner` variant accepted `src`/`alt` and
+  silently discarded them. NS.2 dropped the props at the two call sites, so
+  what remains is the design call — should `/blog` and `/notes` have hero
+  images, or is the teal strip deliberate?
 
 ### NS.5 Search (Phase 5.1)
 

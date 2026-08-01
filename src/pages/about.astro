@@ -1,7 +1,9 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/Container.astro';
 import PageBanner from '../components/PageBanner.astro';
+import aboutImage from '../assets/divide-gap-person.jpg';
 ---
 
 <BaseLayout
@@ -18,10 +20,11 @@ import PageBanner from '../components/PageBanner.astro';
   <section class="py-12 sm:py-16">
     <Container narrow>
       <div class="w-full h-64 sm:h-80 mb-8 overflow-hidden relative bg-base-300 animate-pulse">
-        <img
-          src="/images/Divide gap person.jpg"
+        <Image
+          src={aboutImage}
           alt="Person standing at a digital divide, representing the intersection of technology and humanity"
           class="absolute bottom-0 w-full h-[200%] object-cover object-bottom"
+          loading="eager"
           onload="this.parentElement.classList.remove('bg-base-300', 'animate-pulse')"
         />
       </div>

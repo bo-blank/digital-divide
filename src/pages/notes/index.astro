@@ -3,16 +3,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import PageBanner from '../../components/PageBanner.astro';
 import { getPublishedNotes } from '../../lib/content-utils';
+import { formatDate } from '../../lib/format-date';
 
 const notes = await getPublishedNotes();
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 
 function getPreview(body: string, maxLength = 150): string {
   const text = body
@@ -32,10 +25,9 @@ function getPreview(body: string, maxLength = 150): string {
   title="Notes"
   description="Quick thoughts, observations, and brief commentary on technology and culture."
 >
-  <PageBanner
-    src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=1600&h=600&fit=crop"
-    alt="Vibrant gradient vector illustration with colorful flowing waves"
-  >
+  {/* The default `banner` variant is a text-only strip — it never renders
+      src/alt, so the image props that used to sit here were dead weight. */}
+  <PageBanner>
     <h1 class="text-3xl sm:text-4xl font-heading font-normal tracking-tight text-accent-content">
       Notes
     </h1>

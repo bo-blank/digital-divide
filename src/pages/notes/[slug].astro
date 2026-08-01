@@ -3,6 +3,7 @@ import { render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getPublishedNotes } from '../../lib/content-utils';
+import { formatDate } from '../../lib/format-date';
 
 export async function getStaticPaths() {
   // getPublishedNotes rather than a bare getCollection draft filter: it also
@@ -24,11 +25,7 @@ interface Props {
 const { note } = Astro.props;
 const { Content } = await render(note);
 
-const formattedDate = note.data.publishDate.toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
+const formattedDate = formatDate(note.data.publishDate);
 
 const title = note.data.title || `Note from ${formattedDate}`;
 

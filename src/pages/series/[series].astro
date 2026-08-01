@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getAllSeries, getPostsBySeries } from '../../lib/content-utils';
 import { slugify } from '../../lib/slugify';
+import { formatDate } from '../../lib/format-date';
 
 export const getStaticPaths = (async () => {
   const allSeries = await getAllSeries();
@@ -23,14 +24,6 @@ const posts = await getPostsBySeries(series);
 
 // Sort by publish date (oldest first for series)
 posts.sort((a, b) => a.data.publishDate.valueOf() - b.data.publishDate.valueOf());
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 
 const seriesTitle = seriesName;
 ---

@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../lib/format-date';
 
 interface Props {
   posts: CollectionEntry<'blog'>[];
@@ -8,15 +9,6 @@ interface Props {
 }
 
 const { posts, title = 'You might also like' } = Astro.props;
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 ---
 
 {posts.length > 0 && (
@@ -31,7 +23,6 @@ function formatDate(date: Date): string {
                 src={post.data.coverImage.src}
                 alt={post.data.coverImage.alt}
                 width={400}
-                height={225}
                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
               />
@@ -50,7 +41,7 @@ function formatDate(date: Date): string {
             datetime={post.data.publishDate.toISOString()}
             class="block mt-1 text-xs text-base-content/60"
           >
-            {formatDate(post.data.publishDate)}
+            {formatDate(post.data.publishDate, 'short')}
           </time>
         </article>
       ))}
