@@ -9,13 +9,22 @@ interface ScoredPost {
 }
 
 /**
+ * Minimum score for a post to count as genuinely related rather than filler.
+ * A single shared tag (+3) clears it; the recency bonus alone (max +1) does not.
+ */
+const MIN_RELATED_SCORE = 3;
+
+/**
  * Find related posts based on shared tags, same series, and recency.
  *
  * Scoring algorithm:
  * - Same series: +10 points
  * - Each shared tag: +3 points
- * - Same category: +2 points
  * - Recency bonus: Up to +1 point for posts within last 30 days
+ *
+ * Posts scoring below MIN_RELATED_SCORE are dropped rather than shown as
+ * "related" — if too few posts clear the bar, the remaining slots are filled
+ * with the most recent other posts instead.
  */
 export async function getRelatedPosts(
   currentPost: BlogPost,
@@ -50,15 +59,6 @@ export async function getRelatedPosts(
     );
     score += sharedTags.length * 3;
 
-    // Same category: +2 points
-    if (
-      currentPost.data.category &&
-      post.data.category &&
-      currentPost.data.category.toLowerCase() === post.data.category.toLowerCase()
-    ) {
-      score += 2;
-    }
-
     // Recency bonus: Up to +1 point for posts within last 30 days
     const daysSincePublish = Math.floor(
       (Date.now() - post.data.publishDate.valueOf()) / (1000 * 60 * 60 * 24)
@@ -80,12 +80,10 @@ export async function getRelatedPosts(
     );
   });
 
-  // Return top posts
-  // If no strong matches (score <= 0), fall back to recent posts
-  const topPosts = scoredPosts.slice(0, limit);
+  const related = scoredPosts.filter((sp) => sp.score >= MIN_RELATED_SCORE);
+  const fallback = scoredPosts.filter((sp) => sp.score < MIN_RELATED_SCORE);
 
-  // If we have fewer posts than the limit, just return what we have
-  return topPosts.map((sp) => sp.post);
+  return [...related, ...fallback].slice(0, limit).map((sp) => sp.post);
 }
 
 /**

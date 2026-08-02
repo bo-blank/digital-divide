@@ -44,11 +44,13 @@ function getPageNumbers(current: number, total: number): (number | 'ellipsis')[]
 
 const pageNumbers = getPageNumbers(currentPage, totalPages);
 
+// Astro emits a trailing slash on every route (`/essays/2/`, not `/essays/2`),
+// so a URL without one costs a redirect hop on hosts that enforce them.
 function getPageUrl(page: number): string {
   if (page === 1) {
-    return baseUrl;
+    return `${baseUrl}/`;
   }
-  return `${baseUrl}/${page}`;
+  return `${baseUrl}/${page}/`;
 }
 ---
 

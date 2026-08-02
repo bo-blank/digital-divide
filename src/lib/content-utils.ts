@@ -61,16 +61,6 @@ export async function getPostsBySeries(seriesSlug: string): Promise<BlogPost[]> 
 }
 
 /**
- * Get posts filtered by category.
- */
-export async function getPostsByCategory(category: string): Promise<BlogPost[]> {
-  const posts = await getPublishedPosts();
-  return posts.filter(
-    (post) => post.data.category?.toLowerCase() === category.toLowerCase()
-  );
-}
-
-/**
  * Get all unique tags from published posts.
  */
 export async function getAllTags(): Promise<string[]> {
@@ -98,20 +88,4 @@ export async function getAllSeries(): Promise<string[]> {
   });
 
   return Array.from(seriesSet).sort();
-}
-
-/**
- * Get all unique categories from published posts.
- */
-export async function getAllCategories(): Promise<string[]> {
-  const posts = await getPublishedPosts();
-  const categorySet = new Set<string>();
-
-  posts.forEach((post) => {
-    if (post.data.category) {
-      categorySet.add(post.data.category);
-    }
-  });
-
-  return Array.from(categorySet).sort();
 }

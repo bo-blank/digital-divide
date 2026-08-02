@@ -38,7 +38,11 @@ const {
         loading={loading}
       />
     )}
-    <div class="absolute inset-0 bg-black/40"></div>
+    {/* black/60, not /40: white text needs the scrim's composited luminance
+        below ~0.18 to clear 4.5:1 against a *worst-case* (pure white) photo.
+        /40 measured 2.85:1 there; /60 clears ~5.7:1 regardless of the image,
+        so contrast no longer depends on which photo gets used. */}
+    <div class="absolute inset-0 bg-black/60"></div>
     <div class="relative z-10 flex items-center justify-center h-full text-white">
       <slot />
     </div>

@@ -5,6 +5,14 @@ export interface TocItem {
   slug: string;
 }
 
+// Only h2/h3 headings count toward the ToC, and it only renders past 2 of
+// them — callers deciding whether to reserve layout space for this component
+// must use this same filter, or a post with several h4s (filtered out here)
+// can pass a naive `headings.length` check and get an empty wrapper.
+export function filterTocHeadings(headings: TocItem[]): TocItem[] {
+  return headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+}
+
 interface Props {
   headings: TocItem[];
   title?: string;
@@ -12,8 +20,7 @@ interface Props {
 
 const { headings, title = 'Contents' } = Astro.props;
 
-// Only show h2 and h3 headings in the ToC
-const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+const filteredHeadings = filterTocHeadings(headings);
 ---
 
 {filteredHeadings.length > 2 && (

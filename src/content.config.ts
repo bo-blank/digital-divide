@@ -24,7 +24,6 @@ const blogCollection = defineCollection({
     // formatTagDisplay at render time.
     tags: z.array(z.string()).default([]).transform((tags) => tags.map(slugify)),
     series: z.string().optional(),
-    category: z.string().optional(),
     coverImage: z.object({
       src: image(),
       alt: z.string(),
