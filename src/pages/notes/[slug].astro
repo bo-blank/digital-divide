@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/Container.astro';
 import { getPublishedNotes } from '../../lib/content-utils';
 import { formatDate } from '../../lib/format-date';
+import { mdxComponents } from '../../components/mdx/components';
 
 export async function getStaticPaths() {
   // getPublishedNotes rather than a bare getCollection draft filter: it also
@@ -85,9 +86,9 @@ const description = excerpt
 
         <div
           class="prose prose-note max-w-none"
-          data-color={note.data.color !== 'yellow' ? note.data.color : undefined}
+          data-note-color={note.data.color}
         >
-          <Content />
+          <Content components={mdxComponents} />
         </div>
       </article>
 

@@ -42,7 +42,10 @@ function getPreview(body: string, maxLength = 150): string {
       {notes.length > 0 ? (
         <div class="space-y-8">
           {notes.map((note) => (
-            <article class="group border-l-2 border-base-300 pl-6 hover:border-primary transition-colors">
+            <article
+              class="group note-accent border-l-2 pl-6"
+              data-note-color={note.data.color}
+            >
               <a href={`/notes/${note.id}`} class="block">
                 {note.data.draft && (
                   <span class="mb-2 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">

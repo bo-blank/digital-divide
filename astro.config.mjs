@@ -4,8 +4,19 @@ import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
+import keystatic from '@keystatic/astro';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
+// The Keystatic admin UI is server-rendered, which a static build rejects
+// without an adapter. With `storage: { kind: 'local' }` it edits the working
+// tree directly, so it is a local authoring tool with nothing to do in a
+// deployed build — loading it only under `astro dev` keeps `npm run build`
+// producing the same fully static site as before.
+// Switching keystatic.config.ts to GitHub storage to run the admin on the
+// deployed site would mean dropping this gate and adding a server adapter.
+const isDevServer = process.argv.includes('dev');
 
 // https://astro.build/config
 export default defineConfig({
@@ -89,7 +100,8 @@ export default defineConfig({
   ],
   integrations: [sitemap({
     filter: (page) => {
-      return !page.includes('/moodboard');
+      // The Keystatic admin UI and its API are private tooling, not content.
+      return !page.includes('/moodboard') && !page.includes('/keystatic');
     }
-  }), mdx()]
+  }), mdx(), ...(isDevServer ? [react(), keystatic()] : [])]
 });

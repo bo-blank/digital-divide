@@ -4,6 +4,7 @@ import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
 import { getRelatedPosts, getSeriesPosts } from '../../lib/related-posts';
 import { getReadingTime } from '../../lib/reading-time';
 import { getPublishedPosts } from '../../lib/content-utils';
+import { mdxComponents } from '../../components/mdx/components';
 
 export async function getStaticPaths() {
   // getPublishedPosts rather than a bare getCollection draft filter: it also
@@ -55,5 +56,5 @@ const seriesPosts = post.data.series
   currentPostId={post.id}
   slug={slug}
 >
-  <Content />
+  <Content components={mdxComponents} />
 </BlogPostLayout>

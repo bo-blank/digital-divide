@@ -16,6 +16,7 @@ Astro 7.x blog platform styled after The New Yorker. Uses Tailwind CSS 4.x, Type
 - **Framework:** Astro 7.x (`^7.0.3`)
 - **Styling:** Tailwind CSS 4.3.0 + Typography plugin + DaisyUI 5.x
 - **Content:** Astro Content Collections (MDX) — config at `src/content.config.ts`
+- **CMS:** Keystatic — config at `keystatic.config.ts`, admin at `/keystatic` (dev only)
 - **Newsletter:** MailerLite API (not yet integrated)
 - **Search:** Pagefind (not yet installed)
 
@@ -63,7 +64,26 @@ Pages:       src/pages/kebab-case.astro
 Utilities:   src/lib/kebab-case.ts
 Content:     src/content/{collection}/*.mdx
 Config:      src/content.config.ts  (not src/content/config.ts — Astro 7 moved it)
+CMS:         keystatic.config.ts    (project root)
 ```
+
+### Keystatic
+
+The admin UI lives at `/keystatic` and edits `src/content/` in the working tree
+(`storage: { kind: 'local' }`). Because those routes are server-rendered and the
+site ships as a static build, `astro.config.mjs` loads the `react()` and
+`keystatic()` integrations only under `astro dev`. Running the admin on the
+deployed site would mean switching to GitHub storage and adding an adapter.
+
+Every field in `keystatic.config.ts` must have a counterpart in
+`src/content.config.ts`. Keystatic clears an optional field by writing `null` or
+`""` rather than dropping the key, so optional fields in the Zod schema are
+wrapped in `blankToUndefined` — without it `z.coerce.date()` turns a cleared
+date into 1970-01-01.
+
+MDX components offered in the editor (`Callout`, `Figure`) are written as bare
+JSX with no import statement, so they must also be registered in
+`src/components/mdx/components.ts` and passed to `<Content components={...} />`.
 
 ### Content Collection Query Pattern
 

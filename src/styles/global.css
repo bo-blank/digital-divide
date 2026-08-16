@@ -494,40 +494,64 @@ article[class*="shadow"] {
   }
 }
 
-/* Color variations - just override custom properties */
-.prose-note[data-color="pink"] {
+/* Color variations - just override custom properties.
+   Declared on a bare `[data-note-color]` selector rather than scoped to
+   `.prose-note`, so the notes listing and the homepage can tint their cards
+   from these same six definitions instead of copying the hex values into a
+   second place. `.prose-note` keeps its own yellow defaults above as the
+   fallback for a note body carrying no attribute. */
+[data-note-color="yellow"] {
+  --note-bg-start: #fef9c3;
+  --note-bg-end: #fde047;
+  --note-text: #422006;
+  --note-line: rgba(66, 32, 6, 0.08);
+}
+
+[data-note-color="pink"] {
   --note-bg-start: #fce7f3;
   --note-bg-end: #f9a8d4;
   --note-text: #4a044e;
   --note-line: rgba(74, 4, 78, 0.08);
 }
 
-.prose-note[data-color="blue"] {
+[data-note-color="blue"] {
   --note-bg-start: #dbeafe;
   --note-bg-end: #93c5fd;
   --note-text: #1e3a5f;
   --note-line: rgba(30, 58, 95, 0.08);
 }
 
-.prose-note[data-color="green"] {
+[data-note-color="green"] {
   --note-bg-start: #dcfce7;
   --note-bg-end: #86efac;
   --note-text: #14532d;
   --note-line: rgba(20, 83, 45, 0.08);
 }
 
-.prose-note[data-color="purple"] {
+[data-note-color="purple"] {
   --note-bg-start: #ede9fe;
   --note-bg-end: #c4b5fd;
   --note-text: #3b0764;
   --note-line: rgba(59, 7, 100, 0.08);
 }
 
-.prose-note[data-color="orange"] {
+[data-note-color="orange"] {
   --note-bg-start: #ffedd5;
   --note-bg-end: #fdba74;
   --note-text: #7c2d12;
   --note-line: rgba(124, 45, 18, 0.08);
+}
+
+/* The note's colour as a border accent, so `color` is legible in the listings
+   and not only once a note is opened. Pairs with `data-note-color` on the same
+   element; the fallback keeps the rule harmless if the attribute is missing. */
+.note-accent {
+  border-color: color-mix(in oklab, var(--note-bg-end, currentColor) 60%, transparent);
+  transition: border-color 0.15s;
+}
+
+.note-accent:hover {
+  border-color: var(--note-bg-end, currentColor);
 }
 
 .prose-note strong,

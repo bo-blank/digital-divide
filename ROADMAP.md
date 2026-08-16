@@ -745,13 +745,42 @@ Transform this minimal Astro.js site into a feature-rich publishing platform ins
 - Install prompt handling
 - Offline fallback page with cached content
 
-### Internationalization (i18n)
+### Internationalization (i18n) — English/German
 
-- Astro i18n routing setup (`/en/`, `/es/`, etc.)
-- Content collections per locale
-- Language switcher component in header
-- RTL language support (Arabic, Hebrew)
-- Date/time localization
+- Astro i18n routing setup (`/en/` default, `/de/` for German)
+- Decide content strategy per collection: parallel translated entries
+  (`blog/en/`, `blog/de/`) vs. English-only with German as it's translated —
+  affects the `content.config.ts` schema either way
+- Translate static UI strings (nav, footer, subscribe form, a11y labels) —
+  likely needs a small i18n string dictionary, not full framework machinery
+  given only two locales
+- Language switcher component in header, preserving the current page when
+  switching locale
+- `hreflang` alternate links and locale-specific canonical URLs for SEO
+- Date/time localization (`formatDate()` from NS.4 already centralizes this —
+  extend it to take a locale)
+- RSS: separate feeds per locale, or a single feed with `xml:lang`
+- No RTL work needed for this pair
+
+### Keystatic CMS Integration
+
+Content is currently edited as raw MDX/frontmatter in `src/content/blog/` and
+`src/content/notes/` — fine for one author working in an editor, but there is
+no browser-based editing UI and no validation beyond the Zod schema at build
+time.
+
+- Install `@keystatic/astro` and configure a `keystatic.config.ts` mirroring
+  the `blog` / `notes` schemas already defined in `src/content.config.ts`
+  (title, description, publishDate, author, draft, tags, series, category,
+  coverImage)
+- Git-backed storage mode (local repo in dev, GitHub mode in prod) so content
+  stays as files — no separate database or hosting dependency
+- Mount the admin UI behind an authenticated route (`/keystatic`) or gate it
+  to local dev only, since this is a single-author site
+- Decide whether `coverImage` uploads go through Keystatic's asset handling or
+  stay as manually committed files in `src/assets/`
+- Revisit if/when NS.4's schema-field audit (`category`, note `color`) settles
+  — no point building form fields for fields that might get dropped
 
 ### Content Migration Tools
 
@@ -1025,7 +1054,7 @@ prevents the next one; the individual gaps are symptoms.
 | `title`, `publishDate`, `tags` | rendered everywhere. `title` is optional; untitled notes get an `sr-only` h1 |
 | `updatedDate` | detail only |
 | `draft` | notes index and detail only — same DEV-only gap as above |
-| `color` | **detail only.** Every note carries one of six colours and the detail page renders it via `.prose-note[data-color]`, but `/notes` and the homepage list notes as plain rows and ignore it |
+| `color` | **fixed** — was detail-only. The six palettes moved from `.prose-note[data-color]` to a standalone `[data-note-color]` selector, so `/notes` and the homepage now tint each card's border from the same definitions via `.note-accent` |
 
 **Dead exports** — seven, where NS.4 listed four:
 
@@ -1037,12 +1066,13 @@ prevents the next one; the individual gaps are symptoms.
 **Duplication** — `formatTagDisplay` is copied in **three** files, not the two
 NS.4 records: `Header.astro`, `tags/index.astro`, `tags/[tag].astro`.
 
-**Decisions this needs**
+### Decisions this needs
 
 - `category`: build `/categories`, or drop the field from the schema and the
   five posts that set it
-- note `color`: surface it in the listings, or accept that it is a
-  detail-page-only flourish
+- ~~note `color`: surface it in the listings, or accept that it is a
+  detail-page-only flourish~~ — surfaced, as a border accent on `/notes` and
+  the homepage
 - `draft` badges and `author` on the remaining listings: worth doing as part of
   extracting `PostCard`, not before
 
