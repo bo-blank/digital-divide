@@ -75,6 +75,15 @@ site ships as a static build, `astro.config.mjs` loads the `react()` and
 `keystatic()` integrations only under `astro dev`. Running the admin on the
 deployed site would mean switching to GitHub storage and adding an adapter.
 
+Collections cover `blog` and `notes`. The standalone pages `/about` and
+`/privacy` are Keystatic **singletons** writing to `src/content/pages/*.mdx`,
+read back through the `pages` collection — singletons rather than a collection
+because those routes are hand-written `.astro` files, so a CMS-created third
+page would have nowhere to render. The singleton `path` has no trailing slash,
+which makes Keystatic write a flat `about.mdx` rather than `about/index.mdx`.
+The `.astro` file keeps the layout, banner and hero image; only the prose,
+title, tagline, lead and updated date come from the CMS.
+
 Every field in `keystatic.config.ts` must have a counterpart in
 `src/content.config.ts`. Keystatic clears an optional field by writing `null` or
 `""` rather than dropping the key, so optional fields in the Zod schema are

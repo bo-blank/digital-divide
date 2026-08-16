@@ -72,7 +72,32 @@ const notesCollection = defineCollection({
   }),
 });
 
+/**
+ * Prose for the standalone pages that aren't generated from a collection —
+ * currently /about and /privacy. Each entry is written by a Keystatic
+ * singleton, not a collection, because the routes are hand-written .astro
+ * files: a CMS-created entry with no matching route would be content that
+ * builds into nothing. The .astro file owns the layout and chrome, this owns
+ * the words.
+ */
+const pagesCollection = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/pages' }),
+  schema: z.object({
+    // Rendered as the page's h1 as well as the <title>.
+    title: z.string(),
+    description: z.string(),
+    // Sits under the heading; only /about's banner uses one.
+    tagline: blankToUndefined(z.string().optional()),
+    // The opening paragraph, pulled out of the body so the template can give
+    // it its own larger treatment.
+    lead: blankToUndefined(z.string().optional()),
+    // Drives the "Last updated" line on /privacy.
+    updatedDate: blankToUndefined(z.coerce.date().optional()),
+  }),
+});
+
 export const collections = {
   blog: blogCollection,
   notes: notesCollection,
+  pages: pagesCollection,
 };

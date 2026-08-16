@@ -6,11 +6,33 @@ interface Props {
   alt: string;
   caption?: string;
   credit?: string;
-  width?: number;
-  height?: number;
 }
 
-const { src, alt, caption, credit, width = 800, height = 450 } = Astro.props;
+const { src, alt, caption, credit } = Astro.props;
+
+/**
+ * Keystatic writes `src` as a plain string (`/src/assets/figures/foo.jpg`),
+ * because a component prop in MDX has no way to carry an import. Globbing the
+ * figures directory gives back the ImageMetadata that <Image /> needs to resize
+ * and re-encode the file — passing the raw string would skip optimisation and
+ * ship a path that does not exist in the build output.
+ *
+ * The glob must be recursive: Keystatic files an upload under the entry's slug
+ * and the field's path within it, so a figure lands at
+ * figures/<entry-slug>/<field-path>.<ext>, not flat in the directory. It also
+ * has to stay a literal — Vite resolves it at build time.
+ */
+const figures = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/figures/**/*.{jpeg,jpg,png,gif,webp,avif}'
+);
+
+const loader = figures[src];
+if (!loader) {
+  throw new Error(
+    `Figure: no image at "${src}". Expected a file in src/assets/figures/.`
+  );
+}
+const image = (await loader()).default;
 
 if (!alt) {
   console.warn('Figure component: alt text is required for accessibility');
@@ -19,10 +41,8 @@ if (!alt) {
 
 <figure class="my-8">
   <Image
-    src={src}
+    src={image}
     alt={alt}
-    width={width}
-    height={height}
     class="mx-auto rounded-lg"
     loading="lazy"
     decoding="async"

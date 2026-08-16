@@ -1,4 +1,4 @@
-import { config, collection, fields } from '@keystatic/core';
+import { config, collection, fields, singleton } from '@keystatic/core';
 import { block, wrapper } from '@keystatic/core/content-components';
 
 // Keystatic is configured to write exactly the frontmatter that
@@ -13,11 +13,18 @@ import { block, wrapper } from '@keystatic/core/content-components';
 const COVER_DIRECTORY = 'src/assets/covers';
 const COVER_PUBLIC_PATH = '../../assets/covers/';
 
-// Inline figures go to public/ instead: Figure.astro takes `src` as a plain
-// string and hands it to <Image> with explicit dimensions, which only works
-// for a served URL, not a src/assets import.
-const FIGURE_DIRECTORY = 'public/images/figures';
-const FIGURE_PUBLIC_PATH = '/images/figures/';
+// Inline figures live under src/ too, so they get the same resizing and
+// re-encoding as covers. They need two different public paths for the same
+// directory because the two ways an image reaches the page resolve differently:
+//
+//   - The Figure block writes JSX, and a `src` string prop is just a string.
+//     Figure.astro turns it back into an asset with import.meta.glob, which
+//     matches on project-root-absolute paths — hence the leading `/src/`.
+//   - A plain markdown image in the body is resolved by Astro's remark plugin
+//     relative to the content file, two levels below src/, like coverImage.
+const FIGURE_DIRECTORY = 'src/assets/figures';
+const FIGURE_COMPONENT_PATH = '/src/assets/figures/';
+const FIGURE_MARKDOWN_PATH = '../../assets/figures/';
 
 /**
  * The MDX components authors can insert, mirroring src/components/mdx/. Both
@@ -49,7 +56,7 @@ const contentComponents = {
       src: fields.image({
         label: 'Image',
         directory: FIGURE_DIRECTORY,
-        publicPath: FIGURE_PUBLIC_PATH,
+        publicPath: FIGURE_COMPONENT_PATH,
         validation: { isRequired: true },
       }),
       alt: fields.text({
@@ -59,10 +66,22 @@ const contentComponents = {
       }),
       caption: fields.text({ label: 'Caption' }),
       credit: fields.text({ label: 'Credit' }),
-      width: fields.integer({ label: 'Width', defaultValue: 800 }),
-      height: fields.integer({ label: 'Height', defaultValue: 450 }),
+      // No width/height: Figure.astro reads the intrinsic dimensions off the
+      // imported asset, so there is nothing for an author to get wrong.
     },
   }),
+};
+
+// Where an image dragged straight into the editor body lands. Without this
+// Keystatic drops it next to the entry file in src/content/, which puts binary
+// assets in the content tree; pointing it at the figures directory keeps every
+// inline image in one place. The path is the relative form because these are
+// written as plain markdown images, not as the Figure component.
+const bodyImageOptions = {
+  image: {
+    directory: FIGURE_DIRECTORY,
+    publicPath: FIGURE_MARKDOWN_PATH,
+  },
 };
 
 // Tags are slugified by the Zod schema at parse time, so "Digital Culture"
@@ -73,6 +92,48 @@ const tagsField = fields.array(fields.text({ label: 'Tag' }), {
   itemLabel: (props) => props.value,
   description: 'Free text — normalised to a slug when the site builds.',
 });
+
+/**
+ * The editable parts of a standalone page. Shared by the /about and /privacy
+ * singletons and matched field-for-field by the `pages` collection in
+ * src/content.config.ts.
+ *
+ * Not every page uses every field — only /about has a tagline and a lead,
+ * only /privacy shows an updated date — but the two share a schema so the
+ * Zod side stays a single collection. An unused field is left blank and the
+ * template simply doesn't render it.
+ */
+const pageSchema = {
+  title: fields.text({
+    label: 'Title',
+    description: 'The page heading, and the browser tab title.',
+    validation: { isRequired: true },
+  }),
+  description: fields.text({
+    label: 'Description',
+    multiline: true,
+    description: 'Meta description for search results and social previews.',
+    validation: { isRequired: true },
+  }),
+  tagline: fields.text({
+    label: 'Tagline',
+    description: 'One line under the heading. Used on About; leave blank to omit.',
+  }),
+  lead: fields.text({
+    label: 'Lead paragraph',
+    multiline: true,
+    description: 'Opening paragraph, set larger than the body. Optional.',
+  }),
+  updatedDate: fields.date({
+    label: 'Last updated',
+    description: 'Shown as a "Last updated" line. Used on the privacy policy.',
+  }),
+  content: fields.mdx({
+    label: 'Content',
+    components: contentComponents,
+    options: bodyImageOptions,
+  }),
+};
 
 export default config({
   // Local storage reads and writes the working tree directly. Switching to
@@ -127,10 +188,12 @@ export default config({
               label: 'Image',
               directory: COVER_DIRECTORY,
               publicPath: COVER_PUBLIC_PATH,
+              validation: { isRequired: true },
             }),
             alt: fields.text({
               label: 'Alt text',
-              description: 'Required whenever an image is set.',
+              description: 'Describes the image for screen readers.',
+              validation: { isRequired: true },
             }),
             caption: fields.text({ label: 'Caption' }),
             position: fields.text({
@@ -140,12 +203,20 @@ export default config({
           },
           {
             label: 'Cover image',
-            description: 'Leave the image empty for a post with no cover.',
+            // Both halves are required together. Keystatic can't express "alt is
+            // required only when src is set" — fields.object validates its
+            // children unconditionally, and fields.conditional would serialise
+            // as { discriminant, value }, a frontmatter shape no hand-written
+            // post uses. So the CMS asks for a cover on every essay rather than
+            // letting one through with an image and no alt text, which the Zod
+            // schema rejects at load time anyway. The schema stays lenient, so
+            // a hand-written post can still omit the cover entirely.
           }
         ),
         content: fields.mdx({
           label: 'Content',
           components: contentComponents,
+          options: bodyImageOptions,
         }),
       },
     }),
@@ -188,8 +259,35 @@ export default config({
         content: fields.mdx({
           label: 'Content',
           components: contentComponents,
+          options: bodyImageOptions,
         }),
       },
+    }),
+  },
+
+  // Singletons rather than a `pages` collection: /about and /privacy are
+  // hand-written routes, so the CMS must not be able to create a third page
+  // that has nowhere to render. The path deliberately has no trailing slash —
+  // that makes Keystatic write a flat `about.mdx` instead of `about/index.mdx`,
+  // which is the shape Astro's glob loader turns into the id `about`.
+  singletons: {
+    about: singleton({
+      label: 'About page',
+      path: 'src/content/pages/about',
+      format: { contentField: 'content' },
+      entryLayout: 'content',
+      // The hero photograph on /about stays in the .astro file: it's an
+      // `import` of a fixed asset that the layout positions by hand, not
+      // something an editor needs to swap.
+      schema: pageSchema,
+    }),
+
+    privacy: singleton({
+      label: 'Privacy policy',
+      path: 'src/content/pages/privacy',
+      format: { contentField: 'content' },
+      entryLayout: 'content',
+      schema: pageSchema,
     }),
   },
 });
