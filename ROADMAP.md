@@ -1032,7 +1032,7 @@ Every field below that is "shown in some listings but not others" is a
 divergence between those three copies. Extracting the component is the fix that
 prevents the next one; the individual gaps are symptoms.
 
-**Blog fields**
+#### Blog fields
 
 | field | status |
 | --- | --- |
@@ -1047,7 +1047,7 @@ prevents the next one; the individual gaps are symptoms.
 | `series` | detail only, via `SeriesNav`. Not on cards; `/series` is also unreachable from the UI (NS.4) |
 | `category` | **dead.** Set on every post, read only by `getPostsByCategory` and `getAllCategories`, which nothing imports. No route surfaces it |
 
-**Note fields**
+#### Note fields
 
 | field | status |
 | --- | --- |

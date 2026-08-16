@@ -1,5 +1,7 @@
 import { config, collection, fields, singleton } from '@keystatic/core';
 import { block, wrapper } from '@keystatic/core/content-components';
+import { BrandMark } from './keystatic.brand';
+import { newTagLink } from './keystatic.add-tag';
 
 // Keystatic is configured to write exactly the frontmatter that
 // src/content.config.ts already validates, so posts authored in the CMS and
@@ -84,14 +86,59 @@ const bodyImageOptions = {
   },
 };
 
-// Tags are slugified by the Zod schema at parse time, so "Digital Culture"
-// typed here lands as "digital-culture" and formatTagDisplay restores the
-// casing when rendering. Authors don't need to pre-slugify.
-const tagsField = fields.array(fields.text({ label: 'Tag' }), {
+/**
+ * Tags are picked from the `tags` collection rather than typed free-hand.
+ * multiRelationship renders a dropdown of every tag not yet on the entry plus
+ * a reorderable list of the ones that are, which is what stops "social-media"
+ * and "socialmedia" becoming two tag pages.
+ *
+ * It serialises to the same `tags: [slug, ...]` array the previous free-text
+ * array wrote, so nothing downstream changes — the Zod schema still slugifies
+ * and formatTagDisplay still restores the casing when rendering. A tag that
+ * has no entry in the collection (a hand-written post, or one whose tag file
+ * was deleted) still loads: multiRelationship validates that the value is an
+ * array of strings, not that every string is a known slug.
+ *
+ * The dropdown's type-to-filter box does not work — see the note in CLAUDE.md,
+ * it is an upstream bug — so the list is the whole interface. New tags come
+ * from the link underneath, `newTagLink`.
+ */
+const tagsField = fields.multiRelationship({
   label: 'Tags',
-  itemLabel: (props) => props.value,
-  description: 'Free text — normalised to a slug when the site builds.',
+  collection: 'tags',
+  description: 'Pick from the existing tags.',
 });
+
+/**
+ * Orders a collection list by publish date, newest first.
+ *
+ * The list view always starts sorted by its slug column, ascending: the initial
+ * sort is hardcoded in Keystatic's table and `columns` only adds columns after
+ * the slug one. The single hook is `parseSlugForSort`, which replaces the value
+ * that column sorts on — so feeding it the negated publish date makes the
+ * default order the one these lists are actually read in, without the author
+ * having to click a header on every visit.
+ *
+ * The dates have to come from the files: the table runs in the browser and
+ * knows only each entry's slug, so frontmatter is pulled in at bundle time.
+ * `?raw` and a regex rather than a YAML parser because one line is all that is
+ * needed, and Vite re-evaluates this module when a matched file changes, so an
+ * entry saved in the CMS is back in the right place on the next page load.
+ */
+function byPublishDateDescending(files: Record<string, string>) {
+  const dates = new Map<string, number>();
+
+  for (const [path, raw] of Object.entries(files)) {
+    const slug = path.slice(path.lastIndexOf('/') + 1).replace(/\.mdx?$/, '');
+    const date = /^publishDate:\s*['"]?(\d{4}-\d{2}-\d{2})/m.exec(raw)?.[1];
+    if (date) dates.set(slug, Date.parse(date));
+  }
+
+  // Negated, because ascending is the only direction the list starts in. An
+  // entry the glob never saw — created in this session, or with a date the
+  // regex can't read — sorts to the top rather than silently to the bottom.
+  return (slug: string) => -(dates.get(slug) ?? Date.now());
+}
 
 /**
  * The editable parts of a standalone page. Shared by the /about and /privacy
@@ -140,7 +187,8 @@ export default config({
   // GitHub mode later only changes this block.
   storage: { kind: 'local' },
   ui: {
-    brand: { name: 'Digital Divide' },
+    // The mark is a link back to the site — see keystatic.brand.tsx.
+    brand: { name: 'Digital Divide', mark: BrandMark },
   },
   collections: {
     blog: collection({
@@ -149,7 +197,22 @@ export default config({
       path: 'src/content/blog/*',
       format: { contentField: 'content' },
       entryLayout: 'content',
+      // Adds "Preview" to the entry's actions menu, opening the real page in a
+      // new tab. The URL is site-relative because the admin is served by the
+      // same dev server as the site, so it follows whatever port Astro picks.
+      // {slug} is the filename, which is also the URL segment. Drafts preview
+      // fine — they're excluded from builds, not from dev.
+      previewUrl: '/essays/{slug}',
+      // Slug, then title, then publish date. The slug column is Keystatic's own
+      // and is always first — `columns` can only append to it.
       columns: ['title', 'publishDate'],
+      parseSlugForSort: byPublishDateDescending(
+        import.meta.glob<string>('/src/content/blog/*.mdx', {
+          query: '?raw',
+          import: 'default',
+          eager: true,
+        })
+      ),
       schema: {
         // The slug half of this field is the filename, which is also the URL
         // segment under /essays — existing files keep their current slugs.
@@ -178,6 +241,8 @@ export default config({
           defaultValue: false,
         }),
         tags: tagsField,
+        // Not frontmatter — a link to the Tags collection. See keystatic.add-tag.tsx.
+        newTag: newTagLink,
         series: fields.text({
           label: 'Series',
           description: 'Groups posts under /series. Leave blank for none.',
@@ -227,7 +292,15 @@ export default config({
       path: 'src/content/notes/*',
       format: { contentField: 'content' },
       entryLayout: 'content',
+      previewUrl: '/notes/{slug}',
       columns: ['title', 'publishDate'],
+      parseSlugForSort: byPublishDateDescending(
+        import.meta.glob<string>('/src/content/notes/*.mdx', {
+          query: '?raw',
+          import: 'default',
+          eager: true,
+        })
+      ),
       schema: {
         title: fields.slug({
           name: { label: 'Title', validation: { isRequired: true } },
@@ -243,6 +316,8 @@ export default config({
         updatedDate: fields.date({ label: 'Updated date' }),
         draft: fields.checkbox({ label: 'Draft', defaultValue: false }),
         tags: tagsField,
+        // Not frontmatter — a link to the Tags collection. See keystatic.add-tag.tsx.
+        newTag: newTagLink,
         // Drives the sticky-note colour in the notes listing.
         color: fields.select({
           label: 'Colour',
@@ -263,6 +338,36 @@ export default config({
         }),
       },
     }),
+
+    // The tag vocabulary. Not an Astro collection — nothing renders these
+    // files; they exist so the Tags field on essays and notes has a list to
+    // search. /tags is still built from the tags posts actually carry, so a
+    // vocabulary entry nobody has used yet doesn't create an empty tag page.
+    //
+    // Data-only YAML: the slug is the filename and the only thing written into
+    // frontmatter, so `name` is really just the human-readable form kept
+    // alongside it — a place for canonical casing ("CMS", not "Cms") if the
+    // display side ever reads it instead of guessing.
+    tags: collection({
+      label: 'Tags',
+      slugField: 'name',
+      path: 'src/data/tags/*',
+      format: { data: 'yaml' },
+      columns: ['name'],
+      schema: {
+        name: fields.slug({
+          name: {
+            label: 'Tag',
+            description: 'Written as a person would read it, e.g. "Social Media".',
+            validation: { isRequired: true },
+          },
+          slug: {
+            label: 'Slug',
+            description: 'What lands in frontmatter and in the /tags URL.',
+          },
+        }),
+      },
+    }),
   },
 
   // Singletons rather than a `pages` collection: /about and /privacy are
@@ -276,6 +381,7 @@ export default config({
       path: 'src/content/pages/about',
       format: { contentField: 'content' },
       entryLayout: 'content',
+      previewUrl: '/about',
       // The hero photograph on /about stays in the .astro file: it's an
       // `import` of a fixed asset that the layout positions by hand, not
       // something an editor needs to swap.
@@ -287,6 +393,7 @@ export default config({
       path: 'src/content/pages/privacy',
       format: { contentField: 'content' },
       entryLayout: 'content',
+      previewUrl: '/privacy',
       schema: pageSchema,
     }),
   },

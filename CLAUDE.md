@@ -84,7 +84,47 @@ which makes Keystatic write a flat `about.mdx` rather than `about/index.mdx`.
 The `.astro` file keeps the layout, banner and hero image; only the prose,
 title, tagline, lead and updated date come from the CMS.
 
-Every field in `keystatic.config.ts` must have a counterpart in
+Each collection and singleton sets `previewUrl` (site-relative, `{slug}` for
+collections), which puts a "Preview" item in an entry's ⋯ menu that opens the
+real page in a new tab. The sidebar brand mark is `keystatic.brand.tsx` — an
+anchor back to the site, because Keystatic's chrome is React and
+`ui.navigation` cannot hold an arbitrary link.
+
+The essay and note lists show slug, title and publish date, newest first. Only
+part of that is configurable: Keystatic builds the table as `[slug, ...columns]`
+and hardcodes the initial sort to that slug column ascending, so `columns` can
+only append — the slug column can't be moved, renamed or dropped, and there is
+no `initialSort` option (checked against 0.6.5, the current release). The one
+hook is `parseSlugForSort`, which replaces the value the slug column sorts on;
+`byPublishDateDescending` in `keystatic.config.ts` feeds it negated publish
+dates read out of the `.mdx` files with an eager `?raw` glob, because the table
+runs in the browser knowing only each entry's slug. Reordering the columns
+themselves would mean patching `@keystatic/core`'s dist bundle.
+
+Tags are a `multiRelationship` over a `tags` collection in `src/data/tags/*.yaml`
+— a picker instead of free text, so the vocabulary can't drift into near-duplicate
+tag pages. That collection is Keystatic-only: nothing reads those files at build
+time, `/tags` is still generated from the tags posts carry, and a tag with no
+vocabulary entry still loads (multiRelationship validates "array of strings", not
+"known slugs"). Adding a genuinely new tag means creating it under Tags first —
+the "+ New tag" link under the field goes straight to that form.
+
+That link is `keystatic.add-tag.tsx`, the project's second React component: a
+field that stores nothing (`serialize` returns `undefined`, so no frontmatter
+key is written and the Zod schema needs no counterpart) and renders a link
+instead. Keystatic has no hook for putting UI beside a field, but a field can
+render anything. A tag created there only reaches an open entry after a reload —
+Keystatic fetches the file tree once per page load and never re-polls.
+
+Type-ahead in that field does not work, and it is not fixable from this config:
+every Keystatic combobox (`relationship`, `multiRelationship`) loses focus on the
+first keystroke — `focusout` with a null `relatedTarget` — which reverts the
+input, so only the dropdown is usable. Reproduced with stock field types and
+ruled out as causes: React 19 vs 18, `entryLayout`, the `BrandMark`, and the
+Astro dev toolbar. Don't re-litigate it by swapping field types; the fix has to
+come from upstream (@keystatic/core 0.6.5 / @keystar/ui 0.9.3).
+
+Every other field in `keystatic.config.ts` must have a counterpart in
 `src/content.config.ts`. Keystatic clears an optional field by writing `null` or
 `""` rather than dropping the key, so optional fields in the Zod schema are
 wrapped in `blankToUndefined` — without it `z.coerce.date()` turns a cleared
