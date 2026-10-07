@@ -1,0 +1,214 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../Container.astro';
+import type { Lang } from '../../i18n/config';
+import { localePath } from '../../i18n/routing';
+import { useTranslations } from '../../i18n/ui';
+import subscribeHero from '../../assets/subscribe-hero.jpg';
+
+/** The subscribe page, shared by /subscribe and /de/subscribe. */
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { t } = useTranslations(lang);
+---
+
+<BaseLayout
+  title={t('subscribe.title')}
+  lang={lang}
+  description={t('subscribe.description')}
+>
+  <!-- Hero Image -->
+  <div class="relative h-64 sm:h-80 w-full overflow-hidden">
+    <Image
+      src={subscribeHero}
+      alt={t('subscribe.heroAlt')}
+      widths={[800, 1200, 1600, 2400]}
+      sizes="100vw"
+      class="h-full w-full object-cover"
+      loading="eager"
+    />
+    <div class="absolute inset-0 bg-linear-to-t from-base-100 to-transparent"></div>
+  </div>
+
+  <section class="py-12 sm:py-16">
+    <Container narrow>
+      <header class="mb-12 text-center">
+        <h1>{t('subscribe.title')}</h1>
+        <p class="mt-4 text-lg text-base-content/70">
+          {t('subscribe.lead')}
+        </p>
+      </header>
+
+      <div class="mx-auto max-w-md">
+        {/* The button's two runtime labels ride along as data attributes: the
+            <script> below cannot see a template expression, so writing them
+            inline would freeze them in English on the German page. */}
+        <form
+          class="space-y-4"
+          data-subscribe-form
+          data-label-submit={t('subscribe.submit')}
+          data-label-submitting={t('subscribe.submitting')}
+        >
+          <div>
+            <label for="email" class="sr-only">{t('subscribe.emailLabel')}</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder={t('subscribe.emailPlaceholder')}
+              autocomplete="email"
+              class="w-full rounded-lg border border-base-300 bg-base-100 px-4 py-3 text-base transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          <div class="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="consent"
+              name="consent"
+              required
+              class="mt-1 h-4 w-4 rounded border-base-300 text-primary focus:ring-primary"
+            />
+            {/* The privacy link sits outside the <label>: nested in it, every
+                click on the link also toggled the consent checkbox. */}
+            <div class="text-sm text-base-content/70">
+              <label for="consent">
+                {t('subscribe.consent')}
+              </label>
+              {' '}{t('subscribe.viewPrivacyBefore')} <a href={localePath(lang, '/privacy')} class="text-primary hover:underline">{t('subscribe.privacyPolicy')}</a>{t('subscribe.viewPrivacyAfter')}
+            </div>
+          </div>
+
+          <!-- Honeypot field for spam prevention -->
+          <div class="hidden" aria-hidden="true">
+            <input
+              type="text"
+              name="website"
+              tabindex="-1"
+              autocomplete="off"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary w-full">
+            {t('subscribe.submit')}
+          </button>
+        </form>
+
+        {/* The form hides itself on submit, so without a live region a screen
+            reader user is left with no feedback at all. */}
+        <div
+          class="mt-6 hidden rounded-lg bg-primary/10 p-4 text-center text-primary"
+          role="status"
+          data-success-message
+        >
+          <p class="font-medium">{t('subscribe.successTitle')}</p>
+          <p class="mt-1 text-sm">{t('subscribe.successBody')}</p>
+        </div>
+
+        <div
+          class="mt-6 hidden rounded-lg bg-secondary/10 p-4 text-center text-secondary"
+          role="alert"
+          data-error-message
+        >
+          <p class="font-medium">{t('subscribe.errorTitle')}</p>
+          <p class="mt-1 text-sm">{t('subscribe.errorBody')}</p>
+        </div>
+
+        <p class="mt-8 text-center text-sm text-base-content/70">
+          {t('subscribe.noSpam')}
+        </p>
+      </div>
+
+      <div class="mt-16 border-t border-base-300 pt-12">
+        <h2 class="text-center mb-6">{t('subscribe.whatYouGet')}</h2>
+        <div class="grid gap-6 sm:grid-cols-3">
+          <div class="text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20">
+              <svg aria-hidden="true" class="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium">{t('subscribe.feature1Title')}</h3>
+            <p class="mt-1 text-sm text-base-content/70">
+              {t('subscribe.feature1Body')}
+            </p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-secondary/20">
+              <svg aria-hidden="true" class="h-6 w-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium">{t('subscribe.feature2Title')}</h3>
+            <p class="mt-1 text-sm text-base-content/70">
+              {t('subscribe.feature2Body')}
+            </p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-tertiary/20">
+              <svg aria-hidden="true" class="h-6 w-6 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium">{t('subscribe.feature3Title')}</h3>
+            <p class="mt-1 text-sm text-base-content/70">
+              {t('subscribe.feature3Body')}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector('[data-subscribe-form]') as HTMLFormElement;
+  const successMessage = document.querySelector('[data-success-message]');
+  const errorMessage = document.querySelector('[data-error-message]');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const honeypot = formData.get('website');
+
+    // If honeypot is filled, silently succeed (it's a bot)
+    if (honeypot) {
+      successMessage?.classList.remove('hidden');
+      form.classList.add('hidden');
+      return;
+    }
+
+    const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitButton.disabled = true;
+    submitButton.textContent = form.dataset.labelSubmitting ?? '';
+
+    try {
+      // TODO: Replace with actual API endpoint. Unprefixed on purpose — the
+      // endpoint is one shared JSON API, not a localised page.
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.get('email'),
+        }),
+      });
+
+      if (response.ok) {
+        successMessage?.classList.remove('hidden');
+        form.classList.add('hidden');
+      } else {
+        throw new Error('Subscription failed');
+      }
+    } catch {
+      errorMessage?.classList.remove('hidden');
+      submitButton.disabled = false;
+      submitButton.textContent = form.dataset.labelSubmit ?? '';
+    }
+  });
+</script>

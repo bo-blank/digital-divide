@@ -2,6 +2,7 @@ import { config, collection, fields, singleton } from '@keystatic/core';
 import { block, wrapper } from '@keystatic/core/content-components';
 import { BrandMark } from './keystatic.brand';
 import { newTagLink } from './keystatic.add-tag';
+import { defaultLocale, type Lang } from './src/i18n/config';
 
 // Keystatic is configured to write exactly the frontmatter that
 // src/content.config.ts already validates, so posts authored in the CMS and
@@ -12,8 +13,20 @@ import { newTagLink } from './keystatic.add-tag';
 // (see the note in content.config.ts). Frontmatter references them relative to
 // the content file — src/content/blog/*.mdx is two levels below src/ — which
 // is the form Astro's `image()` helper resolves.
+//
+// Translated content sits one directory deeper (src/content/blog/de/*.mdx), so
+// it needs one more `../`. These are plain strings written verbatim into
+// frontmatter: Keystatic does not resolve them against the entry's path, so a
+// German collection configured with the English constant writes a path that
+// points outside src/ and fails the build with an unresolvable image. Hence
+// depthPrefix(), applied to every relative asset path below.
 const COVER_DIRECTORY = 'src/assets/covers';
-const COVER_PUBLIC_PATH = '../../assets/covers/';
+const FIGURE_DIRECTORY = 'src/assets/figures';
+
+/** `../../` for a collection at src/content/x/*, `../../../` for x/de/*. */
+function depthPrefix(lang: Lang): string {
+  return lang === 'en' ? '../../' : '../../../';
+}
 
 // Inline figures live under src/ too, so they get the same resizing and
 // re-encoding as covers. They need two different public paths for the same
@@ -24,9 +37,7 @@ const COVER_PUBLIC_PATH = '../../assets/covers/';
 //     matches on project-root-absolute paths — hence the leading `/src/`.
 //   - A plain markdown image in the body is resolved by Astro's remark plugin
 //     relative to the content file, two levels below src/, like coverImage.
-const FIGURE_DIRECTORY = 'src/assets/figures';
 const FIGURE_COMPONENT_PATH = '/src/assets/figures/';
-const FIGURE_MARKDOWN_PATH = '../../assets/figures/';
 
 /**
  * The MDX components authors can insert, mirroring src/components/mdx/. Both
@@ -79,12 +90,14 @@ const contentComponents = {
 // assets in the content tree; pointing it at the figures directory keeps every
 // inline image in one place. The path is the relative form because these are
 // written as plain markdown images, not as the Figure component.
-const bodyImageOptions = {
-  image: {
-    directory: FIGURE_DIRECTORY,
-    publicPath: FIGURE_MARKDOWN_PATH,
-  },
-};
+function bodyImageOptions(lang: Lang) {
+  return {
+    image: {
+      directory: FIGURE_DIRECTORY,
+      publicPath: `${depthPrefix(lang)}assets/figures/`,
+    },
+  };
+}
 
 /**
  * Tags are picked from the `tags` collection rather than typed free-hand.
@@ -142,45 +155,267 @@ function byPublishDateDescending(files: Record<string, string>) {
 
 /**
  * The editable parts of a standalone page. Shared by the /about and /privacy
- * singletons and matched field-for-field by the `pages` collection in
- * src/content.config.ts.
+ * singletons in both languages, and matched field-for-field by the `pages`
+ * collection in src/content.config.ts.
  *
  * Not every page uses every field — only /about has a tagline and a lead,
  * only /privacy shows an updated date — but the two share a schema so the
  * Zod side stays a single collection. An unused field is left blank and the
  * template simply doesn't render it.
  */
-const pageSchema = {
-  title: fields.text({
-    label: 'Title',
-    description: 'The page heading, and the browser tab title.',
-    validation: { isRequired: true },
-  }),
-  description: fields.text({
-    label: 'Description',
-    multiline: true,
-    description: 'Meta description for search results and social previews.',
-    validation: { isRequired: true },
-  }),
-  tagline: fields.text({
-    label: 'Tagline',
-    description: 'One line under the heading. Used on About; leave blank to omit.',
-  }),
-  lead: fields.text({
-    label: 'Lead paragraph',
-    multiline: true,
-    description: 'Opening paragraph, set larger than the body. Optional.',
-  }),
-  updatedDate: fields.date({
-    label: 'Last updated',
-    description: 'Shown as a "Last updated" line. Used on the privacy policy.',
-  }),
-  content: fields.mdx({
-    label: 'Content',
-    components: contentComponents,
-    options: bodyImageOptions,
-  }),
-};
+function pageSchema(lang: Lang) {
+  return {
+    title: fields.text({
+      label: 'Title',
+      description: 'The page heading, and the browser tab title.',
+      validation: { isRequired: true },
+    }),
+    description: fields.text({
+      label: 'Description',
+      multiline: true,
+      description: 'Meta description for search results and social previews.',
+      validation: { isRequired: true },
+    }),
+    tagline: fields.text({
+      label: 'Tagline',
+      description: 'One line under the heading. Used on About; leave blank to omit.',
+    }),
+    lead: fields.text({
+      label: 'Lead paragraph',
+      multiline: true,
+      description: 'Opening paragraph, set larger than the body. Optional.',
+    }),
+    updatedDate: fields.date({
+      label: 'Last updated',
+      description: 'Shown as a "Last updated" line. Used on the privacy policy.',
+    }),
+    content: fields.mdx({
+      label: 'Content',
+      components: contentComponents,
+      options: bodyImageOptions(lang),
+    }),
+  };
+}
+
+/**
+ * Locale plumbing for the collection factories below.
+ *
+ * Content is stored one directory deeper per non-default locale
+ * (src/content/blog/de/*), which mirrors how Astro's glob loader turns the
+ * path into an id — `de/der-hinweis` — and how entryLang()/entrySlug() in
+ * src/lib/content-utils.ts read it back. Keeping the default locale flat is
+ * what let German be added without moving a single existing file.
+ */
+const contentDir = (lang: Lang, dir: string) =>
+  lang === defaultLocale ? `src/content/${dir}` : `src/content/${dir}/${lang}`;
+
+// Keystatic types a collection path as a `${string}/*` template literal, so the
+// glob suffix has to be visible to the compiler rather than assembled inside
+// contentDir().
+const contentPath = (lang: Lang, dir: string): `${string}/*` =>
+  `${contentDir(lang, dir)}/*`;
+
+/** URL prefix for previewUrl — '' for English, '/de' for German. */
+const urlPrefix = (lang: Lang) => (lang === defaultLocale ? '' : `/${lang}`);
+
+/** Sidebar suffix, so the two copies of each collection are tellable apart. */
+const label = (base: string, lang: Lang) => `${base} (${lang.toUpperCase()})`;
+
+/**
+ * The `translationOf` field, offered only on non-default locales.
+ *
+ * The link is declared in one direction — a German entry names the English
+ * slug it translates — so there is nothing for an English entry to fill in and
+ * the field would only be a place to introduce a contradiction. Drives the
+ * language switcher and the hreflang alternates; see findTranslation() in
+ * src/lib/content-utils.ts.
+ */
+const translationOfField = (kind: string) =>
+  fields.text({
+    label: 'Translation of',
+    description: `The slug of the English ${kind} this one translates, e.g. "the-tell". Leave blank if this is an original.`,
+  });
+
+/**
+ * One locale's essays collection.
+ *
+ * `sortFiles` is passed in rather than globbed here because
+ * `import.meta.glob` takes a literal — Vite resolves it at build time and
+ * cannot see a runtime-computed path — so each locale's call has to be written
+ * out at the call site.
+ */
+function blogCollection(lang: Lang, sortFiles: Record<string, string>) {
+  const prefix = urlPrefix(lang);
+  return collection({
+    label: label('Essays', lang),
+    slugField: 'title',
+    path: contentPath(lang, 'blog'),
+    format: { contentField: 'content' },
+    entryLayout: 'content',
+    // Adds "Preview" to the entry's actions menu, opening the real page in a
+    // new tab. The URL is site-relative because the admin is served by the
+    // same dev server as the site, so it follows whatever port Astro picks.
+    // {slug} is the filename, which is also the URL segment. Drafts preview
+    // fine — they're excluded from builds, not from dev.
+    previewUrl: `${prefix}/essays/{slug}`,
+    // Slug, then title, then publish date. The slug column is Keystatic's own
+    // and is always first — `columns` can only append to it.
+    columns: ['title', 'publishDate'],
+    parseSlugForSort: byPublishDateDescending(sortFiles),
+    schema: {
+      // The slug half of this field is the filename, which is also the URL
+      // segment under /essays — existing files keep their current slugs.
+      title: fields.slug({
+        name: { label: 'Title', validation: { isRequired: true } },
+        slug: {
+          label: 'Slug',
+          description: `The URL segment under ${prefix}/essays.`,
+        },
+      }),
+      description: fields.text({
+        label: 'Description',
+        multiline: true,
+        description: 'Used in listings, the RSS feed and social previews.',
+        validation: { isRequired: true },
+      }),
+      publishDate: fields.date({
+        label: 'Publish date',
+        validation: { isRequired: true },
+      }),
+      updatedDate: fields.date({ label: 'Updated date' }),
+      author: fields.text({ label: 'Author', defaultValue: 'Anonymous' }),
+      draft: fields.checkbox({
+        label: 'Draft',
+        description: 'Drafts are visible in dev and excluded from builds.',
+        defaultValue: false,
+      }),
+      tags: tagsField,
+      // Not frontmatter — a link to the Tags collection. See keystatic.add-tag.tsx.
+      newTag: newTagLink,
+      series: fields.text({
+        label: 'Series',
+        description: 'Groups posts under /series. Leave blank for none.',
+      }),
+      ...(lang === defaultLocale
+        ? {}
+        : { translationOf: translationOfField('essay') }),
+      coverImage: fields.object(
+        {
+          src: fields.image({
+            label: 'Image',
+            directory: COVER_DIRECTORY,
+            publicPath: `${depthPrefix(lang)}assets/covers/`,
+            validation: { isRequired: true },
+          }),
+          alt: fields.text({
+            label: 'Alt text',
+            description: 'Describes the image for screen readers.',
+            validation: { isRequired: true },
+          }),
+          caption: fields.text({ label: 'Caption' }),
+          position: fields.text({
+            label: 'Focal point',
+            description: 'CSS object-position, e.g. "center 100%".',
+          }),
+        },
+        {
+          label: 'Cover image',
+          // Both halves are required together. Keystatic can't express "alt is
+          // required only when src is set" — fields.object validates its
+          // children unconditionally, and fields.conditional would serialise
+          // as { discriminant, value }, a frontmatter shape no hand-written
+          // post uses. So the CMS asks for a cover on every essay rather than
+          // letting one through with an image and no alt text, which the Zod
+          // schema rejects at load time anyway. The schema stays lenient, so
+          // a hand-written post can still omit the cover entirely.
+        }
+      ),
+      content: fields.mdx({
+        label: 'Content',
+        components: contentComponents,
+        options: bodyImageOptions(lang),
+      }),
+    },
+  });
+}
+
+/** One locale's notes collection. See blogCollection() on `sortFiles`. */
+function notesCollection(lang: Lang, sortFiles: Record<string, string>) {
+  const prefix = urlPrefix(lang);
+  return collection({
+    label: label('Notes', lang),
+    slugField: 'title',
+    path: contentPath(lang, 'notes'),
+    format: { contentField: 'content' },
+    entryLayout: 'content',
+    previewUrl: `${prefix}/notes/{slug}`,
+    columns: ['title', 'publishDate'],
+    parseSlugForSort: byPublishDateDescending(sortFiles),
+    schema: {
+      title: fields.slug({
+        name: { label: 'Title', validation: { isRequired: true } },
+        slug: {
+          label: 'Slug',
+          description: `The URL segment under ${prefix}/notes.`,
+        },
+      }),
+      publishDate: fields.date({
+        label: 'Publish date',
+        validation: { isRequired: true },
+      }),
+      updatedDate: fields.date({ label: 'Updated date' }),
+      draft: fields.checkbox({ label: 'Draft', defaultValue: false }),
+      tags: tagsField,
+      // Not frontmatter — a link to the Tags collection. See keystatic.add-tag.tsx.
+      newTag: newTagLink,
+      ...(lang === defaultLocale
+        ? {}
+        : { translationOf: translationOfField('note') }),
+      // Drives the sticky-note colour in the notes listing.
+      color: fields.select({
+        label: 'Colour',
+        options: [
+          { label: 'Yellow', value: 'yellow' },
+          { label: 'Pink', value: 'pink' },
+          { label: 'Blue', value: 'blue' },
+          { label: 'Green', value: 'green' },
+          { label: 'Purple', value: 'purple' },
+          { label: 'Orange', value: 'orange' },
+        ],
+        defaultValue: 'yellow',
+      }),
+      content: fields.mdx({
+        label: 'Content',
+        components: contentComponents,
+        options: bodyImageOptions(lang),
+      }),
+    },
+  });
+}
+
+/**
+ * One locale's copy of a standalone page.
+ *
+ * The path deliberately has no trailing slash — that makes Keystatic write a
+ * flat `about.mdx` instead of `about/index.mdx`, which is the shape Astro's
+ * glob loader turns into the id `about` (and `de/about` for German).
+ */
+function pageSingleton(lang: Lang, name: string, base: string) {
+  return singleton({
+    label: label(base, lang),
+    path: `${contentDir(lang, 'pages')}/${name}`,
+    format: { contentField: 'content' },
+    entryLayout: 'content',
+    previewUrl: `${urlPrefix(lang)}/${name}`,
+    schema: pageSchema(lang),
+  });
+}
+
+// The glob specifier must be a literal — Vite resolves import.meta.glob at
+// build time, so it cannot be produced by contentPath(). One call per locale,
+// and note that `*` does not cross a `/`: the English globs do not pick up the
+// de/ subdirectory, which is what keeps each list to its own language.
+const RAW_GLOB = { query: '?raw', import: 'default', eager: true } as const;
 
 export default config({
   // Local storage reads and writes the working tree directly. Switching to
@@ -191,180 +426,62 @@ export default config({
     brand: { name: 'Digital Divide', mark: BrandMark },
   },
   collections: {
-    blog: collection({
-      label: 'Essays',
-      slugField: 'title',
-      path: 'src/content/blog/*',
-      format: { contentField: 'content' },
-      entryLayout: 'content',
-      // Adds "Preview" to the entry's actions menu, opening the real page in a
-      // new tab. The URL is site-relative because the admin is served by the
-      // same dev server as the site, so it follows whatever port Astro picks.
-      // {slug} is the filename, which is also the URL segment. Drafts preview
-      // fine — they're excluded from builds, not from dev.
-      previewUrl: '/essays/{slug}',
-      // Slug, then title, then publish date. The slug column is Keystatic's own
-      // and is always first — `columns` can only append to it.
-      columns: ['title', 'publishDate'],
-      parseSlugForSort: byPublishDateDescending(
-        import.meta.glob<string>('/src/content/blog/*.mdx', {
-          query: '?raw',
-          import: 'default',
-          eager: true,
-        })
-      ),
-      schema: {
-        // The slug half of this field is the filename, which is also the URL
-        // segment under /essays — existing files keep their current slugs.
-        title: fields.slug({
-          name: { label: 'Title', validation: { isRequired: true } },
-          slug: {
-            label: 'Slug',
-            description: 'The URL segment under /essays.',
-          },
-        }),
-        description: fields.text({
-          label: 'Description',
-          multiline: true,
-          description: 'Used in listings, the RSS feed and social previews.',
-          validation: { isRequired: true },
-        }),
-        publishDate: fields.date({
-          label: 'Publish date',
-          validation: { isRequired: true },
-        }),
-        updatedDate: fields.date({ label: 'Updated date' }),
-        author: fields.text({ label: 'Author', defaultValue: 'Anonymous' }),
-        draft: fields.checkbox({
-          label: 'Draft',
-          description: 'Drafts are visible in dev and excluded from builds.',
-          defaultValue: false,
-        }),
-        tags: tagsField,
-        // Not frontmatter — a link to the Tags collection. See keystatic.add-tag.tsx.
-        newTag: newTagLink,
-        series: fields.text({
-          label: 'Series',
-          description: 'Groups posts under /series. Leave blank for none.',
-        }),
-        coverImage: fields.object(
-          {
-            src: fields.image({
-              label: 'Image',
-              directory: COVER_DIRECTORY,
-              publicPath: COVER_PUBLIC_PATH,
-              validation: { isRequired: true },
-            }),
-            alt: fields.text({
-              label: 'Alt text',
-              description: 'Describes the image for screen readers.',
-              validation: { isRequired: true },
-            }),
-            caption: fields.text({ label: 'Caption' }),
-            position: fields.text({
-              label: 'Focal point',
-              description: 'CSS object-position, e.g. "center 100%".',
-            }),
-          },
-          {
-            label: 'Cover image',
-            // Both halves are required together. Keystatic can't express "alt is
-            // required only when src is set" — fields.object validates its
-            // children unconditionally, and fields.conditional would serialise
-            // as { discriminant, value }, a frontmatter shape no hand-written
-            // post uses. So the CMS asks for a cover on every essay rather than
-            // letting one through with an image and no alt text, which the Zod
-            // schema rejects at load time anyway. The schema stays lenient, so
-            // a hand-written post can still omit the cover entirely.
-          }
-        ),
-        content: fields.mdx({
-          label: 'Content',
-          components: contentComponents,
-          options: bodyImageOptions,
-        }),
-      },
-    }),
+    blog: blogCollection(
+      'en',
+      import.meta.glob<string>('/src/content/blog/*.mdx', RAW_GLOB)
+    ),
+    blogDe: blogCollection(
+      'de',
+      import.meta.glob<string>('/src/content/blog/de/*.mdx', RAW_GLOB)
+    ),
 
-    notes: collection({
-      label: 'Notes',
-      slugField: 'title',
-      path: 'src/content/notes/*',
-      format: { contentField: 'content' },
-      entryLayout: 'content',
-      previewUrl: '/notes/{slug}',
-      columns: ['title', 'publishDate'],
-      parseSlugForSort: byPublishDateDescending(
-        import.meta.glob<string>('/src/content/notes/*.mdx', {
-          query: '?raw',
-          import: 'default',
-          eager: true,
-        })
-      ),
-      schema: {
-        title: fields.slug({
-          name: { label: 'Title', validation: { isRequired: true } },
-          slug: {
-            label: 'Slug',
-            description: 'The URL segment under /notes.',
-          },
-        }),
-        publishDate: fields.date({
-          label: 'Publish date',
-          validation: { isRequired: true },
-        }),
-        updatedDate: fields.date({ label: 'Updated date' }),
-        draft: fields.checkbox({ label: 'Draft', defaultValue: false }),
-        tags: tagsField,
-        // Not frontmatter — a link to the Tags collection. See keystatic.add-tag.tsx.
-        newTag: newTagLink,
-        // Drives the sticky-note colour in the notes listing.
-        color: fields.select({
-          label: 'Colour',
-          options: [
-            { label: 'Yellow', value: 'yellow' },
-            { label: 'Pink', value: 'pink' },
-            { label: 'Blue', value: 'blue' },
-            { label: 'Green', value: 'green' },
-            { label: 'Purple', value: 'purple' },
-            { label: 'Orange', value: 'orange' },
-          ],
-          defaultValue: 'yellow',
-        }),
-        content: fields.mdx({
-          label: 'Content',
-          components: contentComponents,
-          options: bodyImageOptions,
-        }),
-      },
-    }),
+    notes: notesCollection(
+      'en',
+      import.meta.glob<string>('/src/content/notes/*.mdx', RAW_GLOB)
+    ),
+    notesDe: notesCollection(
+      'de',
+      import.meta.glob<string>('/src/content/notes/de/*.mdx', RAW_GLOB)
+    ),
 
     // The tag vocabulary. Not an Astro collection — nothing renders these
     // files; they exist so the Tags field on essays and notes has a list to
     // search. /tags is still built from the tags posts actually carry, so a
     // vocabulary entry nobody has used yet doesn't create an empty tag page.
     //
-    // Data-only YAML: the slug is the filename and the only thing written into
-    // frontmatter, so `name` is really just the human-readable form kept
-    // alongside it — a place for canonical casing ("CMS", not "Cms") if the
-    // display side ever reads it instead of guessing.
+    // Deliberately shared by both languages rather than duplicated: a German
+    // essay carries the same `social-media` slug as an English one, so
+    // /tags/social-media and /de/tags/social-media are the same topic and pair
+    // up for hreflang with no mapping. Only the *label* is per-language.
+    //
+    // These files are read at build time now (src/lib/tag-labels.ts) — they are
+    // no longer CMS-only scaffolding, so `name` is the real English label and
+    // the place for canonical casing ("CMS", not "Cms"). Every render site goes
+    // through the vocabulary; title-casing the slug is only the fallback for a
+    // tag that has no entry here.
     tags: collection({
       label: 'Tags',
       slugField: 'name',
       path: 'src/data/tags/*',
       format: { data: 'yaml' },
-      columns: ['name'],
+      columns: ['name', 'de'],
       schema: {
         name: fields.slug({
           name: {
-            label: 'Tag',
+            label: 'Tag (English)',
             description: 'Written as a person would read it, e.g. "Social Media".',
             validation: { isRequired: true },
           },
           slug: {
             label: 'Slug',
-            description: 'What lands in frontmatter and in the /tags URL.',
+            description:
+              'What lands in frontmatter and in both /tags and /de/tags URLs. Shared across languages.',
           },
+        }),
+        de: fields.text({
+          label: 'Tag (Deutsch)',
+          description:
+            'How this tag reads on German pages, e.g. "Soziale Medien". Falls back to the English label if blank.',
         }),
       },
     }),
@@ -372,29 +489,14 @@ export default config({
 
   // Singletons rather than a `pages` collection: /about and /privacy are
   // hand-written routes, so the CMS must not be able to create a third page
-  // that has nowhere to render. The path deliberately has no trailing slash —
-  // that makes Keystatic write a flat `about.mdx` instead of `about/index.mdx`,
-  // which is the shape Astro's glob loader turns into the id `about`.
+  // that has nowhere to render.
   singletons: {
-    about: singleton({
-      label: 'About page',
-      path: 'src/content/pages/about',
-      format: { contentField: 'content' },
-      entryLayout: 'content',
-      previewUrl: '/about',
-      // The hero photograph on /about stays in the .astro file: it's an
-      // `import` of a fixed asset that the layout positions by hand, not
-      // something an editor needs to swap.
-      schema: pageSchema,
-    }),
-
-    privacy: singleton({
-      label: 'Privacy policy',
-      path: 'src/content/pages/privacy',
-      format: { contentField: 'content' },
-      entryLayout: 'content',
-      previewUrl: '/privacy',
-      schema: pageSchema,
-    }),
+    // The hero photograph on /about stays in the .astro file: it's an
+    // `import` of a fixed asset that the layout positions by hand, not
+    // something an editor needs to swap.
+    about: pageSingleton('en', 'about', 'About page'),
+    aboutDe: pageSingleton('de', 'about', 'About page'),
+    privacy: pageSingleton('en', 'privacy', 'Privacy policy'),
+    privacyDe: pageSingleton('de', 'privacy', 'Privacy policy'),
   },
 });

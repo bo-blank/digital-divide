@@ -10,9 +10,15 @@ import SeriesNav from '../components/SeriesNav.astro';
 import CopyButton from '../components/CopyButton.astro';
 import type { TocItem } from '../components/TableOfContents.astro';
 import { formatDate } from '../lib/format-date';
+import { getTagLabeller } from '../lib/tag-labels';
+import type { Lang } from '../i18n/config';
+import { localePath, type Alternate } from '../i18n/routing';
+import { useTranslations } from '../i18n/ui';
 
 interface Props {
   title: string;
+  lang: Lang;
+  alternates?: Alternate[];
   description: string;
   author: string;
   publishDate: Date;
@@ -36,6 +42,8 @@ interface Props {
 
 const {
   title,
+  lang,
+  alternates,
   description,
   author,
   publishDate,
@@ -52,6 +60,8 @@ const {
   slug,
 } = Astro.props;
 
+const { t } = useTranslations(lang);
+const tagLabel = await getTagLabeller(lang);
 const pageUrl = Astro.url.href;
 
 // Social slots are a fixed 1200x630, so this is one of the few places an
@@ -68,11 +78,13 @@ const ogImageSrc = coverImage
     })).src
   : undefined;
 
-const formattedDate = formatDate(publishDate);
+const formattedDate = formatDate(publishDate, lang);
 ---
 
 <BaseLayout
   title={title}
+  lang={lang}
+  alternates={alternates}
   description={description}
   ogType="article"
   ogImage={ogImageSrc}
@@ -86,7 +98,7 @@ const formattedDate = formatDate(publishDate);
       <header class="mb-12 max-w-3xl mx-auto">
         {draft && (
           <span class="mb-3 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
-            Draft
+            {t('post.draft')}
           </span>
         )}
         <h1 class="leading-tight" transition:name={slug ? `post-title-${slug}` : undefined}>
@@ -105,7 +117,7 @@ const formattedDate = formatDate(publishDate);
             <>
               <span aria-hidden="true">&middot;</span>
               <time datetime={updatedDate.toISOString()}>
-                Updated: {formatDate(updatedDate)}
+                {t('post.updated', { date: formatDate(updatedDate, lang) })}
               </time>
             </>
           )}
@@ -120,9 +132,10 @@ const formattedDate = formatDate(publishDate);
           <div class="mt-4 flex flex-wrap gap-2 max-w-3xl">
             {tags.map((tag) => (
               <a
-                href={`/tags/${tag}`}
+                href={localePath(lang, `/tags/${tag}`)}
+                class="tag"
               >
-                {tag}
+                {tagLabel(tag)}
               </a>
             ))}
           </div>
@@ -151,14 +164,14 @@ const formattedDate = formatDate(publishDate);
       {/* Table of Contents for long articles */}
       {filterTocHeadings(headings).length > 2 && (
         <div class="mb-12 max-w-3xl mx-auto">
-          <TableOfContents headings={headings} />
+          <TableOfContents headings={headings} lang={lang} />
         </div>
       )}
 
       {/* Series navigation */}
       {series && seriesPosts.length > 1 && currentPostId && (
         <div class="mb-12 max-w-3xl mx-auto">
-          <SeriesNav series={series} posts={seriesPosts} currentPostId={currentPostId} />
+          <SeriesNav series={series} posts={seriesPosts} currentPostId={currentPostId} lang={lang} />
         </div>
       )}
 
@@ -168,40 +181,40 @@ const formattedDate = formatDate(publishDate);
 
       {/* Share buttons */}
       <div class="mt-14 pt-8 border-t border-base-300 max-w-3xl mx-auto">
-        <ShareButtons url={pageUrl} title={title} description={description} />
+        <ShareButtons url={pageUrl} title={title} description={description} lang={lang} />
       </div>
 
       {/* Subscribe CTA */}
       <aside class="mt-12 max-w-3xl mx-auto rounded-lg border border-base-300 bg-base-200 p-8 text-center">
-        <p class="font-medium">Enjoyed this essay?</p>
+        <p class="font-medium">{t('post.enjoyed')}</p>
         <p class="mt-1 text-sm text-base-content/70">
-          Subscribe to get new essays delivered to your inbox.
+          {t('post.subscribePrompt')}
         </p>
-        <a href="/subscribe" class="btn btn-primary btn-sm mt-4">
-          Subscribe
+        <a href={localePath(lang, '/subscribe')} class="btn btn-primary btn-sm mt-4">
+          {t('post.subscribe')}
         </a>
       </aside>
 
       {/* Related posts */}
       {relatedPosts.length > 0 && (
         <div class="mt-14 max-w-3xl mx-auto">
-          <RelatedPosts posts={relatedPosts} />
+          <RelatedPosts posts={relatedPosts} lang={lang} />
         </div>
       )}
     </div>
   </article>
 
-  <CopyButton />
+  <CopyButton lang={lang} />
 
   <!-- <nav>, not <footer>: a <footer> with no sectioning ancestor maps to
        role="contentinfo" and would collide with the site footer in BaseLayout. -->
-  <nav aria-label="Post navigation" class="border-t border-base-300 py-8">
+  <nav aria-label={t('post.navLabel')} class="border-t border-base-300 py-8">
     <Container>
       <a
-        href="/essays"
+        href={localePath(lang, '/essays')}
         class="text-primary hover:underline"
       >
-        &larr; All essays
+        {t('post.allEssays')}
       </a>
     </Container>
   </nav>

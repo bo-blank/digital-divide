@@ -1,5 +1,6 @@
 import type { CollectionEntry } from 'astro:content';
-import { getPublishedPosts } from './content-utils';
+import type { Lang } from '../i18n/config';
+import { entryLang, getPublishedPosts } from './content-utils';
 
 type BlogPost = CollectionEntry<'blog'>;
 
@@ -30,7 +31,10 @@ export async function getRelatedPosts(
   currentPost: BlogPost,
   limit: number = 3
 ): Promise<BlogPost[]> {
-  const allPosts = await getPublishedPosts();
+  // Scoped to the post's own locale, read off its id rather than passed in:
+  // there is exactly one right answer here, and a `lang` parameter would only
+  // create the opportunity to offer German essays as "related" to English ones.
+  const allPosts = await getPublishedPosts(entryLang(currentPost.id));
 
   // Filter out the current post
   const otherPosts = allPosts.filter(
@@ -90,9 +94,10 @@ export async function getRelatedPosts(
  * Get posts from the same series, ordered by publish date.
  */
 export async function getSeriesPosts(
+  lang: Lang,
   series: string
 ): Promise<BlogPost[]> {
-  const allPosts = await getPublishedPosts();
+  const allPosts = await getPublishedPosts(lang);
 
   return allPosts
     .filter(
@@ -119,7 +124,7 @@ export async function getAdjacentSeriesPosts(
     return { previous: null, next: null };
   }
 
-  const seriesPosts = await getSeriesPosts(currentPost.data.series);
+  const seriesPosts = await getSeriesPosts(entryLang(currentPost.id), currentPost.data.series);
   const currentIndex = seriesPosts.findIndex(
     (post) => post.id === currentPost.id
   );

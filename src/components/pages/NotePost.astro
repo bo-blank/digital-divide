@@ -1,0 +1,119 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../Container.astro';
+import { entrySlug, findTranslation, getPublishedNotes } from '../../lib/content-utils';
+import { formatDate } from '../../lib/format-date';
+import { getTagLabeller } from '../../lib/tag-labels';
+import { mdxComponents } from '../mdx/components';
+import { locales, type Lang } from '../../i18n/config';
+import { localePath, type Alternate } from '../../i18n/routing';
+import { useTranslations } from '../../i18n/ui';
+
+/** A single note, shared by /notes/[slug] and /de/notes/[slug]. */
+interface Props {
+  lang: Lang;
+  note: CollectionEntry<'notes'>;
+}
+
+const { lang, note } = Astro.props;
+const { t } = useTranslations(lang);
+const tagLabel = await getTagLabeller(lang);
+const { Content } = await render(note);
+
+const formattedDate = formatDate(note.data.publishDate, lang);
+
+const title = note.data.title || t('notes.untitled', { date: formattedDate });
+
+// Without this every note inherited BaseLayout's generic site description,
+// giving the whole collection one duplicated meta description.
+const excerpt = note.body?.replace(/\s+/g, ' ').trim() ?? '';
+const description = excerpt
+  ? excerpt.slice(0, 155) + (excerpt.length > 155 ? '…' : '')
+  : title;
+
+// See the note in EssayPost.astro — alternates follow the declared translation
+// link, not a guessed slug.
+const alternates: Alternate[] = [
+  { lang, path: localePath(lang, `/notes/${entrySlug(note.id)}`) },
+];
+for (const other of locales) {
+  if (other === lang) continue;
+  const translation = findTranslation(note, await getPublishedNotes(other));
+  if (translation) {
+    alternates.push({
+      lang: other,
+      path: localePath(other, `/notes/${entrySlug(translation.id)}`),
+    });
+  }
+}
+---
+
+<BaseLayout
+  title={title}
+  lang={lang}
+  alternates={alternates}
+  description={description}
+  ogType="article"
+  publishDate={note.data.publishDate}
+  updatedDate={note.data.updatedDate}
+>
+  <section class="py-12 sm:py-16">
+    <Container narrow>
+      <article>
+        <header class="mb-8">
+          {note.data.draft && (
+            <span class="mb-2 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
+              {t('notes.draft')}
+            </span>
+          )}
+          {/* `title` is optional on notes, and an untitled one used to render
+              no h1 at all. The visible design for those is just the date, so
+              the fallback heading is exposed only to assistive tech rather
+              than repeating the date above itself. */}
+          {note.data.title ? (
+            <h1>
+              {note.data.title}
+            </h1>
+          ) : (
+            <h1 class="sr-only">{title}</h1>
+          )}
+          <time
+            datetime={note.data.publishDate.toISOString()}
+            class="mt-2 block text-sm text-base-content/70"
+          >
+            {formattedDate}
+          </time>
+          {note.data.tags.length > 0 && (
+            <div class="mt-4 flex flex-wrap gap-2">
+              {note.data.tags.map((tag) => (
+                <a
+                  href={localePath(lang, `/tags/${tag}`)}
+                  class="tag"
+                >
+                  {tagLabel(tag)}
+                </a>
+              ))}
+            </div>
+          )}
+        </header>
+
+        <div
+          class="prose prose-note max-w-none"
+          data-note-color={note.data.color}
+        >
+          <Content components={mdxComponents} />
+        </div>
+      </article>
+
+      <footer class="mt-12 border-t border-base-300 pt-8">
+        <a
+          href={localePath(lang, '/notes')}
+          class="text-primary hover:underline"
+        >
+          {t('notes.allNotes')}
+        </a>
+      </footer>
+    </Container>
+  </section>
+</BaseLayout>

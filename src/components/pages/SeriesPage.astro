@@ -1,0 +1,141 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../Container.astro';
+import {
+  entrySlug,
+  findTranslation,
+  getPostsBySeries,
+  getPublishedPosts,
+} from '../../lib/content-utils';
+import { formatDate } from '../../lib/format-date';
+import { slugify } from '../../lib/slugify';
+import { getTagLabeller } from '../../lib/tag-labels';
+import { locales, type Lang } from '../../i18n/config';
+import { localePath, type Alternate } from '../../i18n/routing';
+import { useTranslations } from '../../i18n/ui';
+
+/**
+ * One series' page, shared by /series/[series] and /de/series/[series].
+ *
+ * `seriesSlug` is the URL segment; `seriesName` is the original frontmatter
+ * string, so the heading shows "Future of Work" rather than a re-title-cased
+ * guess at the author's capitalisation.
+ */
+interface Props {
+  lang: Lang;
+  seriesSlug: string;
+  seriesName: string;
+}
+
+const { lang, seriesSlug, seriesName } = Astro.props;
+const { t, plural } = useTranslations(lang);
+const tagLabel = await getTagLabeller(lang);
+
+const posts = await getPostsBySeries(lang, seriesSlug);
+
+// Sort by publish date (oldest first for series)
+posts.sort((a, b) => a.data.publishDate.valueOf() - b.data.publishDate.valueOf());
+
+// Series routes exist per locale, exactly like tag routes — see the note in
+// TagPage.astro. Finding the counterpart is harder here than for an essay,
+// because a series has no `translationOf` of its own: it is just a frontmatter
+// string, and translating it (as it should be — "Future of Work" reads wrong
+// on a German page) changes the slug, so the two pages cannot be matched by
+// URL. They are matched through the posts instead: whatever series the German
+// translations of these posts belong to *is* this series in German.
+//
+// Requiring a single answer is deliberate. If the posts scatter across several
+// series in the other locale, or none carries a series at all, there is no one
+// counterpart page and claiming one would be a guess.
+const alternates: Alternate[] = [
+  { lang, path: localePath(lang, `/series/${seriesSlug}/`) },
+];
+for (const other of locales) {
+  if (other === lang) continue;
+  const otherPosts = await getPublishedPosts(other);
+  const counterparts = new Set(
+    posts
+      .map((post) => findTranslation(post, otherPosts))
+      .filter((match) => match?.data.series)
+      .map((match) => slugify(match!.data.series!))
+  );
+  if (counterparts.size === 1) {
+    const [counterpart] = counterparts;
+    alternates.push({
+      lang: other,
+      path: localePath(other, `/series/${counterpart}/`),
+    });
+  }
+}
+---
+
+<BaseLayout
+  title={t('series.pageTitle', { name: seriesName })}
+  lang={lang}
+  alternates={alternates}
+  description={t('series.pageDescription', { name: seriesName })}
+>
+  <section class="py-12 sm:py-16">
+    <Container>
+      <header class="mb-12">
+        <p class="text-sm uppercase tracking-wide text-base-content/60 mb-2">
+          {t('series.kicker')}
+        </p>
+        <h1 class="text-3xl sm:text-4xl font-heading font-normal tracking-tight">
+          {seriesName}
+        </h1>
+        <p class="mt-3 text-base-content/70">
+          {plural('series.partsInSeries', posts.length)}
+        </p>
+      </header>
+
+      {posts.length > 0 ? (
+        <ol class="space-y-6" role="list">
+          {posts.map((post, index) => (
+            <li class="relative pl-12 pb-6 border-l-2 border-base-300 last:border-l-0 last:pb-0">
+              {/* Part number indicator */}
+              <div class="absolute left-0 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-sm font-medium">
+                {index + 1}
+              </div>
+
+              <article class="group">
+                <a href={localePath(lang, `/essays/${entrySlug(post.id)}`)} class="block">
+                  <h2 class="font-heading font-medium text-xl group-hover:text-primary transition-colors">
+                    {post.data.title}
+                  </h2>
+                </a>
+                <p class="mt-2 text-base-content/70 line-clamp-2">
+                  {post.data.description}
+                </p>
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-sm text-base-content/60">
+                  <time datetime={post.data.publishDate.toISOString()}>
+                    {formatDate(post.data.publishDate, lang)}
+                  </time>
+                </div>
+                {post.data.tags.length > 0 && (
+                  <div class="mt-3 flex flex-wrap gap-1">
+                    {post.data.tags.slice(0, 3).map((tag) => (
+                      <a href={localePath(lang, `/tags/${tag}`)} class="tag text-xs">
+                        {tagLabel(tag)}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </article>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p class="text-base-content/70 text-center py-12">
+          {t('series.noPosts')}
+        </p>
+      )}
+
+      <div class="mt-12 pt-8 border-t border-base-300">
+        <a href={localePath(lang, '/series')} class="text-primary hover:underline">
+          {t('series.allSeries')}
+        </a>
+      </div>
+    </Container>
+  </section>
+</BaseLayout>

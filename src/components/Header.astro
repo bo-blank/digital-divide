@@ -1,18 +1,34 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
 import { getPublishedPosts, getPublishedNotes } from '../lib/content-utils';
-import { formatTagDisplay } from '../lib/format-tag';
+import { getTagLabeller } from '../lib/tag-labels';
+import type { Lang } from '../i18n/config';
+import { localePath, type Alternate } from '../i18n/routing';
+import { useTranslations } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Passed straight through to the language switcher — see BaseLayout. */
+  alternates: Alternate[];
+}
+
+const { lang, alternates } = Astro.props;
+const { t } = useTranslations(lang);
+const tagLabel = await getTagLabeller(lang);
 
 const navLinks = [
-  { href: '/essays', label: 'Essays' },
-  { href: '/notes', label: 'Notes' },
-  { href: '/tags', label: 'Tags' },
-  { href: '/about', label: 'About' },
+  { href: localePath(lang, '/essays'), label: t('nav.essays') },
+  { href: localePath(lang, '/notes'), label: t('nav.notes') },
+  { href: localePath(lang, '/tags'), label: t('nav.tags') },
+  { href: localePath(lang, '/about'), label: t('nav.about') },
 ];
 
-// Calculate trending tags based on recent content only
-const posts = await getPublishedPosts();
-const notes = await getPublishedNotes();
+// Calculate trending tags based on recent content only — scoped to this
+// locale, or the English nav would surface tags whose only posts are German
+// (and whose German tag page the English reader cannot reach from here).
+const posts = await getPublishedPosts(lang);
+const notes = await getPublishedNotes(lang);
 
 // Only consider the 10 most recent posts and notes for trending
 const recentPosts = posts.slice(0, 10);
@@ -37,8 +53,8 @@ const trendingTags = Array.from(tagCounts.entries())
 
 
 const trendingTopics = trendingTags.map(([tag]) => ({
-  href: `/tags/${tag}`,
-  label: formatTagDisplay(tag),
+  href: localePath(lang, `/tags/${tag}`),
+  label: tagLabel(tag),
 }));
 
 const currentPath = Astro.url.pathname;
@@ -46,23 +62,39 @@ const currentPath = Astro.url.pathname;
 // Astro emits trailing slashes, so /essays/ and /essays/the-tell/ both count as
 // /essays, while a sibling like /essays-archive would not. syncActiveNav() in
 // the script below repeats this exact predicate — the two must agree or the
-// highlight flickers on load.
+// highlight flickers on load. The hrefs are already locale-prefixed, so this
+// works unchanged under /de/ without special-casing the locale.
 const isActive = (href: string) =>
   currentPath === href || currentPath.startsWith(`${href}/`);
+
+const homeHref = localePath(lang, '/');
+const subscribeHref = localePath(lang, '/subscribe');
 ---
 
-<header class="fixed left-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out" style="background-color: var(--color-bg-subtle);" data-header transition:persist>
-  <nav class="mx-auto max-w-6xl px-4 py-4" aria-label="Main">
+{/* The persist key is locale-scoped. Without it, navigating from /essays to
+    /de/essays via the language switcher would reuse the English header's DOM —
+    Astro persists by key, and a bare `transition:persist` keys on the element's
+    position, which is identical in both trees. The consequence is subtle and
+    ugly: German page, English nav, and no re-render to fix it. */}
+<header
+  class="fixed left-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out"
+  style="background-color: var(--color-bg-subtle);"
+  data-header
+  transition:persist={`header-${lang}`}
+>
+  <nav class="mx-auto max-w-6xl px-4 py-4" aria-label={t('nav.label')}>
     <div class="relative flex items-center justify-center">
       <!-- Left side: Mobile menu -->
       <div class="flex items-center sm:hidden">
         <button
           type="button"
           class="p-2 -ml-2 text-base-content/70 transition-colors hover:text-base-content"
-          aria-label="Open menu"
+          aria-label={t('nav.openMenu')}
           aria-expanded="false"
           aria-controls="mobile-menu"
           data-menu-toggle
+          data-label-open={t('nav.openMenu')}
+          data-label-close={t('nav.closeMenu')}
         >
           <svg class="h-6 w-6" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
@@ -91,11 +123,11 @@ const isActive = (href: string) =>
 
       <!-- Center: Logo -->
       <a
-        href="/"
+        href={homeHref}
         class="font-heading text-2xl font-semibold tracking-tight transition-opacity hover:opacity-70 sm:text-3xl"
         style="font-family: var(--font-heading);"
       >
-        Digital Divide
+        {t('site.title')}
       </a>
 
       <!-- Desktop Right: Nav links + Subscribe -->
@@ -119,12 +151,15 @@ const isActive = (href: string) =>
         </ul>
 
         <!-- Subscribe Button -->
-        <a href="/subscribe" class="btn btn-primary btn-sm min-h-[44px]">
-          Subscribe
+        <a href={subscribeHref} class="btn btn-primary btn-sm min-h-[44px]">
+          {t('nav.subscribe')}
         </a>
 
+        <!-- Language Switcher -->
+        <LanguageSwitcher lang={lang} alternates={alternates} />
+
         <!-- Theme Toggle -->
-        <ThemeToggle />
+        <ThemeToggle lang={lang} />
       </div>
     </div>
 
@@ -155,10 +190,10 @@ const isActive = (href: string) =>
       ))}
       <li>
         <a
-          href="/subscribe"
+          href={subscribeHref}
           class="block py-3 text-base font-medium text-primary transition-colors hover:text-primary/80"
         >
-          Subscribe
+          {t('nav.subscribe')}
         </a>
       </li>
     </ul>
@@ -166,21 +201,21 @@ const isActive = (href: string) =>
 
   <!-- Trending Topics Bar -->
   <div class="border-t border-base-300 bg-base-200">
-    <nav class="mx-auto max-w-6xl px-4 py-2" aria-label="Trending topics">
+    <nav class="mx-auto max-w-6xl px-4 py-2" aria-label={t('nav.trendingLabel')}>
       <div class="flex items-center justify-center gap-4 overflow-x-auto scrollbar-none">
         <span class="flex items-center gap-2 text-sm font-medium text-secondary shrink-0">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
             <span class="relative inline-flex h-2 w-2 rounded-full bg-secondary"></span>
           </span>
-          Trending
+          {t('nav.trending')}
         </span>
         <ul class="flex items-center gap-4 sm:gap-6">
           {trendingTopics.map(({ href, label }) => (
             <li class="shrink-0">
               <a
                 href={href}
-                class="text-sm text-base-content/70 transition-colors hover:text-primary"
+                class="tag-link text-sm text-base-content/70 transition-colors hover:text-primary"
               >
                 {label}
               </a>
@@ -207,8 +242,14 @@ const isActive = (href: string) =>
     menuToggle.addEventListener('click', () => {
       const willExpand = menuToggle.getAttribute('aria-expanded') !== 'true';
       menuToggle.setAttribute('aria-expanded', String(willExpand));
-      // Otherwise it announces "Open menu, expanded" while it is the close action.
-      menuToggle.setAttribute('aria-label', willExpand ? 'Close menu' : 'Open menu');
+      // Otherwise it announces "Open menu, expanded" while it is the close
+      // action. Both labels are handed over as data attributes because this is
+      // a <script>, which no template expression reaches — a translated string
+      // written inline here would be frozen in English.
+      const label = willExpand
+        ? menuToggle.dataset.labelClose
+        : menuToggle.dataset.labelOpen;
+      if (label) menuToggle.setAttribute('aria-label', label);
 
       if (mobileMenu instanceof HTMLElement) {
         mobileMenu.inert = !willExpand;
@@ -254,7 +295,8 @@ const isActive = (href: string) =>
   // navigation and the active link stays frozen on whichever page was loaded
   // first — the highlight only looked right after a hard refresh. Astro cannot
   // re-render a persisted island, so the state is reapplied here. Must match
-  // the isActive() predicate in the frontmatter.
+  // the isActive() predicate in the frontmatter. The hrefs it compares are
+  // already locale-prefixed, so no locale handling is needed here either.
   function syncActiveNav() {
     const path = window.location.pathname;
     document.querySelectorAll('[data-nav-link]').forEach((link) => {

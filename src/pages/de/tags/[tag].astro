@@ -1,0 +1,40 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import TagPage from '../../../components/pages/TagPage.astro';
+import { getPublishedPosts, getPublishedNotes } from '../../../lib/content-utils';
+
+// The tag set is per-locale: it is built from this locale's own posts and
+// notes, so a tag used only by German content gets a page under /de/tags
+// and none under /tags.
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts('de');
+  const notes = await getPublishedNotes('de');
+
+  const tags = new Set<string>();
+  posts.forEach((post) => {
+    post.data.tags.forEach((tag: string) => tags.add(tag));
+  });
+  notes.forEach((note) => {
+    note.data.tags?.forEach((tag: string) => tags.add(tag));
+  });
+
+  return Array.from(tags).map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: posts.filter((post) => post.data.tags.includes(tag)),
+      notes: notes.filter((note) => note.data.tags.includes(tag)),
+    },
+  }));
+}
+
+interface Props {
+  tag: string;
+  posts: CollectionEntry<'blog'>[];
+  notes: CollectionEntry<'notes'>[];
+}
+
+const { tag, posts, notes } = Astro.props;
+---
+
+<TagPage lang="de" tag={tag} posts={posts} notes={notes} />

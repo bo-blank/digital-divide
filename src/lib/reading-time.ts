@@ -1,4 +1,5 @@
-const WORDS_PER_MINUTE = 200;
+import { localeMeta, type Lang } from '../i18n/config';
+import { useTranslations } from '../i18n/ui';
 
 /**
  * Count words in text, cleaning MDX/HTML content first.
@@ -21,37 +22,51 @@ function countWords(text: string): number {
 /**
  * Calculate reading time for a given text.
  * Returns both the number of minutes and a formatted string.
+ *
+ * The words-per-minute divisor is per-locale (see localeMeta): German prose
+ * reads slower than English, so sharing one figure would understate every
+ * German essay.
  */
-export function calculateReadingTime(text: string): {
+export function calculateReadingTime(
+  text: string,
+  lang: Lang
+): {
   minutes: number;
   text: string;
 } {
+  const { plural } = useTranslations(lang);
   const wordCount = countWords(text);
-  const minutes = Math.ceil(wordCount / WORDS_PER_MINUTE);
+  const minutes = Math.ceil(wordCount / localeMeta[lang].wordsPerMinute);
 
   return {
     minutes,
-    text: minutes === 1 ? '1 min read' : `${minutes} min read`,
+    text: plural('readingTime.minutes', minutes),
   };
 }
 
 /**
  * Get reading time from raw markdown/MDX content.
  */
-export function getReadingTime(content: string): string {
-  return calculateReadingTime(content).text;
+export function getReadingTime(content: string, lang: Lang): string {
+  return calculateReadingTime(content, lang).text;
 }
 
 /**
  * Get word count rounded to nearest 100, formatted as string.
  */
-export function getWordCount(content: string): string {
+export function getWordCount(content: string, lang: Lang): string {
+  const { plural } = useTranslations(lang);
   const wordCount = countWords(content);
   const rounded = Math.round(wordCount / 100) * 100;
 
   if (rounded === 0) {
-    return `${wordCount} words`;
+    return plural('readingTime.words', wordCount);
   }
 
-  return `${rounded.toLocaleString()} words`;
+  // Explicitly localised: bare toLocaleString() follows the build machine's
+  // locale, so a German page could render "1,200 Wörter" with an English
+  // thousands separator depending on where the build ran.
+  return plural('readingTime.words', rounded, {
+    count: rounded.toLocaleString(localeMeta[lang].dateLocale),
+  });
 }

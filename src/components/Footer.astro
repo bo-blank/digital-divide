@@ -1,5 +1,17 @@
 ---
+import type { Lang } from '../i18n/config';
+import { localePath } from '../i18n/routing';
+import { useTranslations } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { t } = useTranslations(lang);
+
 const currentYear = new Date().getFullYear();
+const p = (path: string) => localePath(lang, path);
 ---
 
 <footer class="border-t border-base-300 bg-base-200">
@@ -9,46 +21,48 @@ const currentYear = new Date().getFullYear();
           document order, so h6 skipped h2-h5 on all 40 pages. Each nav takes
           its accessible name from its own heading. */}
       <nav aria-labelledby="footer-explore">
-        <h2 id="footer-explore" class="footer-title">Explore</h2>
-        <a href="/essays" class="link link-hover">Essays</a>
-        <a href="/notes" class="link link-hover">Notes</a>
-        <a href="/tags" class="link link-hover">Topics</a>
-        <a href="/series" class="link link-hover">Series</a>
-        <a href="/rss.xml" class="link link-hover">RSS Feed</a>
+        <h2 id="footer-explore" class="footer-title">{t('footer.explore')}</h2>
+        <a href={p('/essays')} class="link link-hover">{t('footer.essays')}</a>
+        <a href={p('/notes')} class="link link-hover">{t('footer.notes')}</a>
+        <a href={p('/tags')} class="link link-hover">{t('footer.topics')}</a>
+        <a href={p('/series')} class="link link-hover">{t('footer.series')}</a>
+        {/* Each locale gets its own feed — a reader who subscribes from the
+            German site should not start receiving English essays. */}
+        <a href={p('/rss.xml')} class="link link-hover">{t('footer.rss')}</a>
       </nav>
       <nav aria-labelledby="footer-about">
-        <h2 id="footer-about" class="footer-title">About</h2>
-        <a href="/about" class="link link-hover">About Us</a>
-        <a href="mailto:hello@digitaldivide.com" class="link link-hover">Contact</a>
+        <h2 id="footer-about" class="footer-title">{t('footer.about')}</h2>
+        <a href={p('/about')} class="link link-hover">{t('footer.aboutUs')}</a>
+        <a href="mailto:hello@digitaldivide.com" class="link link-hover">{t('footer.contact')}</a>
       </nav>
       <nav aria-labelledby="footer-legal">
-        <h2 id="footer-legal" class="footer-title">Legal</h2>
-        <a href="/privacy" class="link link-hover">Privacy Policy</a>
+        <h2 id="footer-legal" class="footer-title">{t('footer.legal')}</h2>
+        <a href={p('/privacy')} class="link link-hover">{t('footer.privacy')}</a>
       </nav>
-      <form action="/subscribe" method="get">
-        <h2 class="footer-title">Newsletter</h2>
+      <form action={p('/subscribe')} method="get">
+        <h2 class="footer-title">{t('footer.newsletter')}</h2>
         <fieldset class="w-full max-w-80">
           {/* Was a <label> with no `for`, which both left it orphaned and
               competed with the input's own aria-label. As a description it
               supplements the accessible name instead of fighting it. */}
-          <p id="footer-newsletter-hint" class="text-sm">Get essays delivered to your inbox</p>
+          <p id="footer-newsletter-hint" class="text-sm">{t('footer.newsletterHint')}</p>
           <div class="join mt-2">
             <input
               type="email"
               name="email"
-              placeholder="your@email.com"
+              placeholder={t('footer.emailPlaceholder')}
               class="input input-bordered join-item"
-              aria-label="Email address"
+              aria-label={t('footer.emailLabel')}
               aria-describedby="footer-newsletter-hint"
             />
-            <button type="submit" class="btn btn-primary join-item">Subscribe</button>
+            <button type="submit" class="btn btn-primary join-item">{t('footer.subscribe')}</button>
           </div>
         </fieldset>
       </form>
     </div>
 
     <div class="border-t border-base-300 py-4">
-      <p class="text-sm text-base-content/70">&copy; {currentYear} Digital Divide. All rights reserved.</p>
+      <p class="text-sm text-base-content/70">{t('site.rights', { year: currentYear })}</p>
     </div>
   </div>
 </footer>

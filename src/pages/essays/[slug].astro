@@ -1,20 +1,17 @@
 ---
-import { render, type CollectionEntry } from 'astro:content';
-import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
-import { getRelatedPosts, getSeriesPosts } from '../../lib/related-posts';
-import { getReadingTime } from '../../lib/reading-time';
-import { getPublishedPosts } from '../../lib/content-utils';
-import { mdxComponents } from '../../components/mdx/components';
+import type { CollectionEntry } from 'astro:content';
+import EssayPost from '../../components/pages/EssayPost.astro';
+import { entrySlug, getPublishedPosts } from '../../lib/content-utils';
 
+// getPublishedPosts rather than a bare getCollection draft filter: it also
+// excludes future publishDates. Filtering only drafts here meant an embargoed
+// post was hidden from every listing but still built, sitemapped and
+// crawlable at its own URL.
 export async function getStaticPaths() {
-  // getPublishedPosts rather than a bare getCollection draft filter: it also
-  // excludes future publishDates. Filtering only drafts here meant an embargoed
-  // post was hidden from every listing but still built, sitemapped and
-  // crawlable at its own URL.
-  const posts = await getPublishedPosts();
+  const posts = await getPublishedPosts('en');
 
   return posts.map((post) => ({
-    params: { slug: post.id },
+    params: { slug: entrySlug(post.id) },
     props: { post },
   }));
 }
@@ -24,37 +21,6 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const slug = post.id;
-const { Content, headings } = await render(post);
-
-// Computed from the raw body rather than remark frontmatter: no remark plugin
-// writes `readingTime`, so the old remarkPluginFrontmatter lookup was always
-// undefined and rendered an empty string.
-const readingTime = post.body ? getReadingTime(post.body) : '';
-const relatedPosts = await getRelatedPosts(post, 3);
-
-// Get series posts if this post is part of a series
-const seriesPosts = post.data.series
-  ? await getSeriesPosts(post.data.series)
-  : [];
 ---
 
-<BlogPostLayout
-  title={post.data.title}
-  description={post.data.description}
-  author={post.data.author}
-  publishDate={post.data.publishDate}
-  updatedDate={post.data.updatedDate}
-  tags={post.data.tags}
-  coverImage={post.data.coverImage}
-  draft={post.data.draft}
-  readingTime={readingTime}
-  headings={headings}
-  relatedPosts={relatedPosts}
-  series={post.data.series}
-  seriesPosts={seriesPosts}
-  currentPostId={post.id}
-  slug={slug}
->
-  <Content components={mdxComponents} />
-</BlogPostLayout>
+<EssayPost lang="en" post={post} />

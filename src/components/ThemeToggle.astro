@@ -1,13 +1,22 @@
 ---
 // Theme toggle with sun/moon icons
 // Persists preference to localStorage and respects system preference
+import type { Lang } from '../i18n/config';
+import { useTranslations } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { t } = useTranslations(lang);
 ---
 
 <button
   type="button"
   id="theme-toggle"
   class="flex h-11 w-11 items-center justify-center rounded-lg text-base-content/70 transition-colors hover:bg-base-200 hover:text-base-content"
-  aria-label="Toggle dark mode"
+  aria-label={t('theme.toggle')}
 >
   <!-- Sun icon (shown in dark mode) -->
   <svg

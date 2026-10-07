@@ -2,23 +2,31 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { formatDate } from '../lib/format-date';
+import { entrySlug } from '../lib/content-utils';
+import type { Lang } from '../i18n/config';
+import { localePath } from '../i18n/routing';
+import { useTranslations } from '../i18n/ui';
 
 interface Props {
   posts: CollectionEntry<'blog'>[];
+  lang: Lang;
   title?: string;
 }
 
-const { posts, title = 'You might also like' } = Astro.props;
+const { posts, lang, title } = Astro.props;
+const { t } = useTranslations(lang);
+const heading = title ?? t('related.title');
+const hrefFor = (id: string) => localePath(lang, `/essays/${entrySlug(id)}`);
 ---
 
 {posts.length > 0 && (
   <aside class="related-posts">
-    <h2 class="text-lg font-heading font-medium mb-6">{title}</h2>
+    <h2 class="text-lg font-heading font-medium mb-6">{heading}</h2>
     <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 sm:gap-6">
       {posts.map((post) => (
         <article class="related-post group">
           {post.data.coverImage ? (
-            <a href={`/essays/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3">
+            <a href={hrefFor(post.id)} class="block aspect-video overflow-hidden rounded-lg mb-3">
               <Image
                 src={post.data.coverImage.src}
                 alt={post.data.coverImage.alt}
@@ -31,11 +39,11 @@ const { posts, title = 'You might also like' } = Astro.props;
               />
             </a>
           ) : (
-            <a href={`/essays/${post.id}`} class="block aspect-video overflow-hidden rounded-lg mb-3 bg-primary/10 flex items-center justify-center">
+            <a href={hrefFor(post.id)} class="block aspect-video overflow-hidden rounded-lg mb-3 bg-primary/10 flex items-center justify-center">
               <span class="text-primary/30 text-2xl font-heading">DD</span>
             </a>
           )}
-          <a href={`/essays/${post.id}`} class="block">
+          <a href={hrefFor(post.id)} class="block">
             <h3 class="font-heading font-medium text-base leading-snug group-hover:text-primary transition-colors">
               {post.data.title}
             </h3>
@@ -44,7 +52,7 @@ const { posts, title = 'You might also like' } = Astro.props;
             datetime={post.data.publishDate.toISOString()}
             class="block mt-1 text-xs text-base-content/60"
           >
-            {formatDate(post.data.publishDate, 'short')}
+            {formatDate(post.data.publishDate, lang, 'short')}
           </time>
         </article>
       ))}

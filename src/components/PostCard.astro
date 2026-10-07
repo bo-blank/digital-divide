@@ -2,10 +2,15 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { formatDate } from '../lib/format-date';
-import { formatTagDisplay } from '../lib/format-tag';
+import { entrySlug } from '../lib/content-utils';
+import { getTagLabeller } from '../lib/tag-labels';
+import type { Lang } from '../i18n/config';
+import { localePath } from '../i18n/routing';
+import { useTranslations } from '../i18n/ui';
 
 interface Props {
   post: CollectionEntry<'blog'>;
+  lang: Lang;
   /** 2 under a page h1, 3 under a section h2. */
   headingLevel?: 2 | 3;
   /** Cover height. The homepage grid is shorter on small screens. */
@@ -16,15 +21,21 @@ interface Props {
 
 const {
   post,
+  lang,
   headingLevel = 2,
   imageHeightClass = 'h-48',
   maxTags = 3,
   loading = 'lazy',
 } = Astro.props;
 
+const { t } = useTranslations(lang);
+const tagLabel = await getTagLabeller(lang);
+
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 const { title, description, author, publishDate, tags, coverImage, draft } = post.data;
-const href = `/essays/${post.id}`;
+// entrySlug, not post.id: a German entry's id is `de/der-hinweis`, and pairing
+// that with the locale prefix would build /de/essays/de/der-hinweis.
+const href = localePath(lang, `/essays/${entrySlug(post.id)}`);
 ---
 
 <article
@@ -59,7 +70,7 @@ const href = `/essays/${post.id}`;
 
   <div class="card-body">
     {draft && (
-      <span class="badge badge-secondary badge-sm w-fit mb-2">Draft</span>
+      <span class="badge badge-secondary badge-sm w-fit mb-2">{t('card.draft')}</span>
     )}
 
     <a href={href} class="hover:text-primary transition-colors">
@@ -73,13 +84,13 @@ const href = `/essays/${post.id}`;
     <div class="mt-auto pt-4 flex flex-wrap items-center gap-2 text-xs text-base-content/70">
       <span>{author}</span>
       <span aria-hidden="true">&middot;</span>
-      <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
+      <time datetime={publishDate.toISOString()}>{formatDate(publishDate, lang)}</time>
     </div>
 
     {tags.length > 0 && (
       <div class="flex flex-wrap gap-1 mt-2">
         {tags.slice(0, maxTags).map((tag) => (
-          <a href={`/tags/${tag}`}>{formatTagDisplay(tag)}</a>
+          <a href={localePath(lang, `/tags/${tag}`)} class="tag">{tagLabel(tag)}</a>
         ))}
       </div>
     )}

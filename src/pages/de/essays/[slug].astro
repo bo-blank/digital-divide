@@ -1,0 +1,26 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import EssayPost from '../../../components/pages/EssayPost.astro';
+import { entrySlug, getPublishedPosts } from '../../../lib/content-utils';
+
+// getPublishedPosts rather than a bare getCollection draft filter: it also
+// excludes future publishDates. Filtering only drafts here meant an embargoed
+// post was hidden from every listing but still built, sitemapped and
+// crawlable at its own URL.
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts('de');
+
+  return posts.map((post) => ({
+    params: { slug: entrySlug(post.id) },
+    props: { post },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+---
+
+<EssayPost lang="de" post={post} />

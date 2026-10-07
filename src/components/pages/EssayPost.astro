@@ -1,0 +1,72 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
+import { getRelatedPosts, getSeriesPosts } from '../../lib/related-posts';
+import { getReadingTime } from '../../lib/reading-time';
+import { entrySlug, findTranslation, getPublishedPosts } from '../../lib/content-utils';
+import { mdxComponents } from '../mdx/components';
+import { locales, type Lang } from '../../i18n/config';
+import { localePath, type Alternate } from '../../i18n/routing';
+
+/** A single essay, shared by /essays/[slug] and /de/essays/[slug]. */
+interface Props {
+  lang: Lang;
+  post: CollectionEntry<'blog'>;
+}
+
+const { lang, post } = Astro.props;
+const slug = entrySlug(post.id);
+const { Content, headings } = await render(post);
+
+// Computed from the raw body rather than remark frontmatter: no remark plugin
+// writes `readingTime`, so the old remarkPluginFrontmatter lookup was always
+// undefined and rendered an empty string.
+const readingTime = post.body ? getReadingTime(post.body, lang) : '';
+const relatedPosts = await getRelatedPosts(post, 3);
+
+// Get series posts if this post is part of a series
+const seriesPosts = post.data.series
+  ? await getSeriesPosts(lang, post.data.series)
+  : [];
+
+// hreflang alternates are built from the actual translation link rather than
+// by assuming the same slug exists in the other locale — the slugs differ by
+// design ("the-tell" / "der-hinweis"), and an essay with no translation yet
+// must advertise none rather than point crawlers and the language switcher at
+// a URL that does not exist.
+const alternates: Alternate[] = [
+  { lang, path: localePath(lang, `/essays/${slug}`) },
+];
+for (const other of locales) {
+  if (other === lang) continue;
+  const translation = findTranslation(post, await getPublishedPosts(other));
+  if (translation) {
+    alternates.push({
+      lang: other,
+      path: localePath(other, `/essays/${entrySlug(translation.id)}`),
+    });
+  }
+}
+---
+
+<BlogPostLayout
+  lang={lang}
+  alternates={alternates}
+  title={post.data.title}
+  description={post.data.description}
+  author={post.data.author}
+  publishDate={post.data.publishDate}
+  updatedDate={post.data.updatedDate}
+  tags={post.data.tags}
+  coverImage={post.data.coverImage}
+  draft={post.data.draft}
+  readingTime={readingTime}
+  headings={headings}
+  relatedPosts={relatedPosts}
+  series={post.data.series}
+  seriesPosts={seriesPosts}
+  currentPostId={post.id}
+  slug={slug}
+>
+  <Content components={mdxComponents} />
+</BlogPostLayout>

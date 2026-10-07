@@ -17,6 +17,7 @@ Astro 7.x blog platform styled after The New Yorker. Uses Tailwind CSS 4.x, Type
 - **Styling:** Tailwind CSS 4.3.0 + Typography plugin + DaisyUI 5.x
 - **Content:** Astro Content Collections (MDX) — config at `src/content.config.ts`
 - **CMS:** Keystatic — config at `keystatic.config.ts`, admin at `/keystatic` (dev only)
+- **i18n:** English (default, unprefixed) + German at `/de/*` — strings in `src/i18n/ui.ts`
 - **Newsletter:** MailerLite API (not yet integrated)
 - **Search:** Pagefind (not yet installed)
 
@@ -59,10 +60,14 @@ Fonts:
 
 ```text
 Components:  src/components/PascalCase.astro
+Page bodies: src/components/pages/PascalCase.astro   (shared by both locales)
 Layouts:     src/layouts/PascalCase.astro
-Pages:       src/pages/kebab-case.astro
+Routes (en): src/pages/kebab-case.astro              (thin wrappers)
+Routes (de): src/pages/de/kebab-case.astro           (mirror of the above)
 Utilities:   src/lib/kebab-case.ts
-Content:     src/content/{collection}/*.mdx
+i18n:        src/i18n/{config,routing,ui}.ts
+Content:     src/content/{collection}/*.mdx          (English)
+             src/content/{collection}/de/*.mdx       (German)
 Config:      src/content.config.ts  (not src/content/config.ts — Astro 7 moved it)
 CMS:         keystatic.config.ts    (project root)
 ```
@@ -75,8 +80,20 @@ site ships as a static build, `astro.config.mjs` loads the `react()` and
 `keystatic()` integrations only under `astro dev`. Running the admin on the
 deployed site would mean switching to GitHub storage and adding an adapter.
 
-Collections cover `blog` and `notes`. The standalone pages `/about` and
-`/privacy` are Keystatic **singletons** writing to `src/content/pages/*.mdx`,
+Collections cover `blog`/`blogDe` and `notes`/`notesDe`, built by one factory
+per kind so the two locales cannot drift (labels are suffixed `(EN)`/`(DE)`).
+The one thing the factory cannot take a parameter for is `parseSlugForSort`'s
+`import.meta.glob` — Vite resolves the specifier at build time, so each locale's
+call is written out at the call site. Note `*` does not cross a `/`, so the
+English globs do not pick up `de/`.
+
+**The depth gotcha:** `coverImage.src` and body-image paths are written into
+frontmatter *verbatim* — Keystatic does not resolve them against the entry's
+path. German content sits one directory deeper, so it needs `../../../assets/…`
+where English needs `../../`. That is what `depthPrefix(lang)` is for; getting
+it wrong writes a path pointing outside `src/` and fails the build.
+
+The standalone pages `/about` and `/privacy` are Keystatic **singletons** writing to `src/content/pages/*.mdx`,
 read back through the `pages` collection — singletons rather than a collection
 because those routes are hand-written `.astro` files, so a CMS-created third
 page would have nowhere to render. The singleton `path` has no trailing slash,
@@ -124,6 +141,13 @@ ruled out as causes: React 19 vs 18, `entryLayout`, the `BrandMark`, and the
 Astro dev toolbar. Don't re-litigate it by swapping field types; the fix has to
 come from upstream (@keystatic/core 0.6.5 / @keystar/ui 0.9.3).
 
+`translationOf` is offered only on the German collections: the link is declared
+in one direction (a German entry names the English slug it translates), so on an
+English entry the field would only be a place to introduce a contradiction.
+
+The tag vocabulary is deliberately **not** duplicated per locale — see the i18n
+section above.
+
 Every other field in `keystatic.config.ts` must have a counterpart in
 `src/content.config.ts`. Keystatic clears an optional field by writing `null` or
 `""` rather than dropping the key, so optional fields in the Zod schema are
@@ -134,18 +158,101 @@ MDX components offered in the editor (`Callout`, `Figure`) are written as bare
 JSX with no import statement, so they must also be registered in
 `src/components/mdx/components.ts` and passed to `<Content components={...} />`.
 
+### Internationalisation
+
+English is the default locale and is **unprefixed** (`/essays`); German is served
+from `/de/*`. Astro's `i18n.routing.prefixDefaultLocale` is `false`, so no
+existing English URL moved when German was added — nothing under `src/pages/`
+outside `de/` changed shape, and no redirects were needed.
+
+**Locale is a directory, not a frontmatter field.** German content lives in a
+`de/` subdirectory of the same collection (`src/content/blog/de/*.mdx`). The
+glob loaders already use `**` patterns, so this needed no new collection —
+`CollectionEntry<'blog'>` is still one type and no component prop changed. The
+cost is that an entry's `id` carries the prefix (`de/der-hinweis`), so:
+
+> **Use `entrySlug(post.id)`, never `post.id`, in an href or a getStaticPaths
+> param.** The raw id builds `/de/essays/de/der-hinweis`, which renders fine and
+> 404s from every link on the site. `entryLang(id)` is the matching reader.
+
+Three modules, none of which import `astro:content` (so `content.config.ts` and
+`keystatic.config.ts` can use them):
+
+- `src/i18n/config.ts` — the locale table: date/OG/RSS codes, words-per-minute.
+- `src/i18n/routing.ts` — `localePath(lang, path)` builds every internal href.
+  **Nothing else may hardcode `/de`.** For the default locale it returns its
+  argument byte-for-byte, which is what keeps English output identical.
+- `src/i18n/ui.ts` — ~160 strings. `en` is the source of truth and `de` is typed
+  `Record<keyof typeof en, string>`, so a missing German key is a compile error.
+  `t('key', vars)` interpolates `{name}`; `plural('key', n)` picks `_one`/`_other`.
+  Sentences with values in them are whole keys — never concatenate a translated
+  fragment with a value, because German word order differs.
+
+**Page bodies are shared.** Each route's markup lives in
+`src/components/pages/*.astro` taking a `lang` prop; `src/pages/**` and
+`src/pages/de/**` are wrappers that do nothing but scope `getStaticPaths` to a
+locale and render the body. A design change is made once.
+
+**Two traps that already bit once:**
+
+1. `Header.astro` is `transition:persist`, keyed `header-${lang}`. A bare
+   `transition:persist` keys on element position, which is identical in both
+   trees — so `/essays` → `/de/essays` would keep the English header on a German
+   page with no re-render to fix it.
+2. Translated slugs differ (`the-tell` / `der-hinweis`), so **no route may
+   assume the same path exists in the other locale.** The essay, note, tag,
+   series and paginated-essay pages all compute their own `alternates` and pass
+   them to `BaseLayout`; only routes that genuinely exist in both (`/about`,
+   `/subscribe`, …) use its `alternatesForPath` default. Those alternates feed
+   both the `hreflang` tags and the language switcher, so the two cannot
+   disagree. A page with no counterpart links to the other locale's home page
+   rather than inventing a URL.
+
+Translations are linked by a `translationOf` frontmatter field on the German
+entry naming the English slug (`findTranslation` in `content-utils.ts`).
+
+**Tag slugs are shared across locales; only labels are translated.** A German
+essay carries the same `social-media` slug, so `/tags/social-media` and
+`/de/tags/social-media` are the same topic and pair for `hreflang` with no
+mapping. The labels come from `src/data/tags/*.yaml` (`name:` + `de:`), read by
+`getTagLabeller(lang)` in `lib/tag-labels.ts` — call it once in a component's
+frontmatter, then use the returned sync function in the markup. Every tag render
+site goes through it; `formatTagDisplay` is now only the fallback for a slug
+with no vocabulary entry.
+
+Two consequences worth remembering: adding a language means adding a field to
+the tags YAML schema **and** to `keystatic.config.ts`, and `/tags` sorts and
+groups by the *label*, not the slug — grouping by slug files "Werbung" under A.
+
+Strings inside `<script>` blocks cannot come from a template expression; they
+are passed in on `data-` attributes (`Header` menu labels, `CopyButton`,
+`SubscribePage`, `LanguageSwitcher`).
+
+**Never style or match by URL shape.** `global.css` used to pill tag links with
+`a[href^="/tags/"]`, a prefix match against the default locale — so every German
+pill at `/de/tags/...` silently fell through it and rendered as bare text, and
+the `:not([href^="/tags/"])` guards on the nav hover rule stopped excluding
+anything. Tag links now carry `.tag` (pill) or `.tag-link` (header trending),
+and the CSS matches those. Anything keyed on a path prefix is a latent
+locale bug: `alternatesForPath` was the same mistake in a different file.
+
+**Deployment gap:** `src/pages/de/404.astro` builds to `/de/404.html`, but a
+static host serves the root `/404.html` for every miss. Routing `/de/*` misses
+to the German page needs a host rule (Netlify `_redirects`, Vercel rewrite).
+Until then the root 404 carries a "Deutsch" button to `/de/`.
+
 ### Content Collection Query Pattern
 
+Every `content-utils` and `related-posts` export takes a locale:
+
 ```typescript
-import { getCollection } from 'astro:content';
+import { getPublishedPosts, entrySlug } from '../lib/content-utils';
+import { localePath } from '../i18n/routing';
 
-const posts = await getCollection('blog', ({ data }) => {
-  return !data.draft || import.meta.env.DEV;
-});
+// Already sorted newest-first, drafts and future dates filtered.
+const posts = await getPublishedPosts(lang);
 
-const sorted = posts.sort((a, b) =>
-  b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
-);
+const href = localePath(lang, `/essays/${entrySlug(posts[0].id)}`);
 ```
 
 ### API Route Pattern
@@ -193,7 +300,26 @@ export const POST: APIRoute = async ({ request }) => {
 - Pages: `tags/index.astro`, `tags/[tag].astro`, `series/index.astro`, `series/[series].astro`
 - Pages: `about.astro`, `privacy.astro`, `subscribe.astro`, `rss.xml.ts`
 - Components: `Header`, `Footer`, `Container`, `Pagination`, `ShareButtons`, `CopyButton`, `TableOfContents`, `RelatedPosts`, `SeriesNav`, `PageBanner`
-- Content: 5 blog posts, 4 notes
+- Content: 5 blog posts, 4 notes (English)
+
+#### Phase 3b — German locale
+
+- `src/i18n/{config,routing,ui}.ts` — locale table, URL builder, ~160 strings
+- Shared page bodies in `src/components/pages/`, thin route wrappers in
+  `src/pages/` and `src/pages/de/`
+- `LanguageSwitcher.astro`, per-page `hreflang`, sitemap `i18n` alternates
+- German feed at `/de/rss.xml`; Keystatic `blogDe`/`notesDe`/`aboutDe`/`privacyDe`
+- **All content translated:** 6 essays, 4 notes, `/de/about`, `/de/privacy`.
+  Every English entry has a German counterpart linked by `translationOf`, so
+  `hreflang` and the language switcher pair up across all of them.
+- Series names are translated too ("Future of Work" / "Zukunft der Arbeit"),
+  which changes the slug — so `SeriesPage.astro` finds a series' counterpart
+  through its posts' `translationOf` links rather than by URL.
+- **`/de/privacy` is a faithful translation of the English policy, not a
+  German-market one.** A GDPR policy additionally needs the Verantwortlicher and
+  their contact details, the Rechtsgrundlage per purpose, Speicherdauer, and the
+  Beschwerderecht bei einer Aufsichtsbehörde. None of that exists in the English
+  source to translate. Have it reviewed before launching in the EU.
 
 ### Next Priorities
 

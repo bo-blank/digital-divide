@@ -1,20 +1,17 @@
 ---
-import { render, type CollectionEntry } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Container from '../../components/Container.astro';
-import { getPublishedNotes } from '../../lib/content-utils';
-import { formatDate } from '../../lib/format-date';
-import { mdxComponents } from '../../components/mdx/components';
+import type { CollectionEntry } from 'astro:content';
+import NotePost from '../../components/pages/NotePost.astro';
+import { entrySlug, getPublishedNotes } from '../../lib/content-utils';
 
+// getPublishedNotes rather than a bare getCollection draft filter: it also
+// excludes future publishDates. Filtering only drafts here meant a scheduled
+// note was hidden from every listing but still built, sitemapped and
+// crawlable at its own URL.
 export async function getStaticPaths() {
-  // getPublishedNotes rather than a bare getCollection draft filter: it also
-  // excludes future publishDates. Filtering only drafts here meant a scheduled
-  // note was hidden from every listing but still built, sitemapped and
-  // crawlable at its own URL.
-  const notes = await getPublishedNotes();
+  const notes = await getPublishedNotes('en');
 
   return notes.map((note) => ({
-    params: { slug: note.id },
+    params: { slug: entrySlug(note.id) },
     props: { note },
   }));
 }
@@ -24,82 +21,6 @@ interface Props {
 }
 
 const { note } = Astro.props;
-const { Content } = await render(note);
-
-const formattedDate = formatDate(note.data.publishDate);
-
-const title = note.data.title || `Note from ${formattedDate}`;
-
-// Without this every note inherited BaseLayout's generic site description,
-// giving the whole collection one duplicated meta description.
-const excerpt = note.body?.replace(/\s+/g, ' ').trim() ?? '';
-const description = excerpt
-  ? excerpt.slice(0, 155) + (excerpt.length > 155 ? '…' : '')
-  : title;
 ---
 
-<BaseLayout
-  title={title}
-  description={description}
-  ogType="article"
-  publishDate={note.data.publishDate}
-  updatedDate={note.data.updatedDate}
->
-  <section class="py-12 sm:py-16">
-    <Container narrow>
-      <article>
-        <header class="mb-8">
-          {note.data.draft && (
-            <span class="mb-2 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
-              Draft
-            </span>
-          )}
-          {/* `title` is optional on notes, and an untitled one used to render
-              no h1 at all. The visible design for those is just the date, so
-              the fallback heading is exposed only to assistive tech rather
-              than repeating the date above itself. */}
-          {note.data.title ? (
-            <h1>
-              {note.data.title}
-            </h1>
-          ) : (
-            <h1 class="sr-only">{title}</h1>
-          )}
-          <time
-            datetime={note.data.publishDate.toISOString()}
-            class="mt-2 block text-sm text-base-content/70"
-          >
-            {formattedDate}
-          </time>
-          {note.data.tags.length > 0 && (
-            <div class="mt-4 flex flex-wrap gap-2">
-              {note.data.tags.map((tag) => (
-                <a
-                  href={`/tags/${tag}`}
-                >
-                  {tag}
-                </a>
-              ))}
-            </div>
-          )}
-        </header>
-
-        <div
-          class="prose prose-note max-w-none"
-          data-note-color={note.data.color}
-        >
-          <Content components={mdxComponents} />
-        </div>
-      </article>
-
-      <footer class="mt-12 border-t border-base-300 pt-8">
-        <a
-          href="/notes"
-          class="text-primary hover:underline"
-        >
-          &larr; All notes
-        </a>
-      </footer>
-    </Container>
-  </section>
-</BaseLayout>
+<NotePost lang="en" note={note} />

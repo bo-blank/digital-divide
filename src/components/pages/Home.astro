@@ -1,0 +1,195 @@
+---
+import Container from '../Container.astro';
+import PageBanner from '../PageBanner.astro';
+import PostCard from '../PostCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { entrySlug, getPublishedPosts, getPublishedNotes } from '../../lib/content-utils';
+import { formatDate } from '../../lib/format-date';
+import { getTagLabeller } from '../../lib/tag-labels';
+import type { Lang } from '../../i18n/config';
+import { localePath } from '../../i18n/routing';
+import { useTranslations } from '../../i18n/ui';
+
+/**
+ * The home page body, shared by / and /de/.
+ *
+ * The route files under src/pages are wrappers that supply nothing but `lang`;
+ * all the markup lives here so a design change lands in both languages at once
+ * rather than having to be remembered twice.
+ */
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { t } = useTranslations(lang);
+const tagLabel = await getTagLabeller(lang);
+
+const posts = await getPublishedPosts(lang);
+const notes = await getPublishedNotes(lang);
+
+// Featured post is the most recent one
+const featuredPost = posts[0];
+const recentPosts = posts.slice(1, 4);
+const recentNotes = notes.slice(0, 3);
+---
+
+<BaseLayout title={t('site.title')} lang={lang}>
+  <!-- Hero Section - New Yorker Style -->
+  {featuredPost ? (
+    <a href={localePath(lang, `/essays/${entrySlug(featuredPost.id)}`)} class="group block border-b border-base-300" data-astro-prefetch="load">
+      <div class="grid lg:grid-cols-2 lg:min-h-[50vh]">
+        <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
+          <article class="max-w-xl">
+            <h1
+              class="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1] group-hover:underline"
+              transition:name={`post-title-${featuredPost.id}`}
+            >
+              {featuredPost.data.title}
+            </h1>
+            <p class="mt-8 text-lg sm:text-xl leading-relaxed text-base-content/80">
+              {featuredPost.data.description}
+              {featuredPost.data.author && (
+                <span> {t('home.byline', { author: featuredPost.data.author })}</span>
+              )}
+            </p>
+            <div class="mt-8">
+              <span class="btn btn-outline btn-primary">
+                {t('home.read')}
+              </span>
+            </div>
+          </article>
+        </div>
+
+        <PageBanner
+          variant="split"
+          src={featuredPost.data.coverImage?.src}
+          alt={featuredPost.data.coverImage?.alt ?? ''}
+          objectPosition={featuredPost.data.coverImage?.position ?? 'center'}
+        >
+          {!featuredPost.data.coverImage && (
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-primary-content/20 text-9xl font-heading">DD</div>
+            </div>
+          )}
+        </PageBanner>
+      </div>
+    </a>
+  ) : (
+    <section class="border-b border-base-300">
+      <div class="grid lg:grid-cols-2 lg:min-h-[50vh]">
+        <!-- Left Column: Text -->
+        <div class="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
+          <div class="max-w-xl">
+            <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1]">
+              {t('site.title')}
+            </h1>
+            <p class="mt-8 text-lg sm:text-xl leading-relaxed text-base-content/80">
+              {t('home.heroBlurb')}
+            </p>
+            <div class="mt-8">
+              <a href={localePath(lang, '/subscribe')} class="btn btn-outline btn-primary">
+                {t('home.subscribe')}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Image -->
+        <div class="relative bg-primary min-h-[40vh] sm:min-h-[50vh] lg:min-h-full">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-primary-content/20 text-9xl font-heading">DD</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Newsletter CTA -->
+  <section class="py-4">
+    <Container>
+      <div class="flex items-center justify-center gap-2 text-base-content/70 text-sm">
+        <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <a href={localePath(lang, '/subscribe')} class="transition-opacity">
+          {t('home.dontMiss')}
+        </a>
+      </div>
+    </Container>
+  </section>
+
+  <!-- Recent Essays -->
+  <section class="py-12 border-t border-base-300">
+    <Container>
+      <div class="flex items-center justify-between mb-8">
+        <h2>{t('home.recentEssays')}</h2>
+        <a href={localePath(lang, '/essays')} class="text-sm text-primary hover:underline">
+          {t('home.viewAll')}
+        </a>
+      </div>
+
+      {recentPosts.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {recentPosts.map((post) => (
+            <PostCard post={post} lang={lang} headingLevel={3} imageHeightClass="h-40 sm:h-48" />
+          ))}
+        </div>
+      ) : (
+        <p class="text-base-content/70">{t('home.noEssays')}</p>
+      )}
+    </Container>
+  </section>
+
+  <!-- Recent Notes -->
+  {recentNotes.length > 0 && (
+    <section class="py-12 border-t border-base-300">
+      <Container>
+        <div class="flex items-center justify-between mb-8">
+          <h2>{t('home.notes')}</h2>
+          <a href={localePath(lang, '/notes')} class="text-sm text-primary hover:underline">
+            {t('home.viewAll')}
+          </a>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {recentNotes.map((note) => (
+            <article
+              class="bg-base-100 shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow p-4 group note-accent border-l-4"
+              data-note-color={note.data.color}
+            >
+              <a href={localePath(lang, `/notes/${entrySlug(note.id)}`)} class="block">
+                {note.data.title ? (
+                  <h3 class="font-medium group-hover:underline mb-2">
+                    {note.data.title}
+                  </h3>
+                ) : (
+                  <p class="text-base-content/70 mb-2">{t('home.viewNote')}</p>
+                )}
+                <time
+                  datetime={note.data.publishDate.toISOString()}
+                  class="text-xs text-base-content/70 block"
+                >
+                  {formatDate(note.data.publishDate, lang)}
+                </time>
+              </a>
+                {note.data.tags && note.data.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-1 mt-3">
+                    {note.data.tags.slice(0, 3).map((tag) => (
+                      <a
+                        href={localePath(lang, `/tags/${tag}`)}
+                        class="tag"
+                      >
+                        {tagLabel(tag)}
+                      </a>
+                    ))}
+                  </div>
+                )}
+            </article>
+          ))}
+        </div>
+      </Container>
+    </section>
+  )}
+
+</BaseLayout>

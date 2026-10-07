@@ -1,0 +1,14 @@
+---
+import type { GetStaticPaths } from 'astro';
+import EssayList, { PAGE_SIZE } from '../../../components/pages/EssayList.astro';
+import { getPublishedPosts } from '../../../lib/content-utils';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getPublishedPosts('de');
+  return paginate(posts, { pageSize: PAGE_SIZE });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+
+<EssayList lang="de" page={page} />

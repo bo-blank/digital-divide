@@ -21,6 +21,18 @@ const isDevServer = process.argv.includes('dev');
 // https://astro.build/config
 export default defineConfig({
   site: 'https://digital-divide.com',
+  // English is the default locale and stays unprefixed, so every URL the site
+  // has ever had keeps working untouched; German is served from /de/*, built
+  // out of src/pages/de/. The locale list is mirrored in src/i18n/config.ts,
+  // which is what the templates import — this block only teaches Astro the
+  // routing shape (Astro.currentLocale, the sitemap integration below).
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'de'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   prefetch: {
     prefetchAll: false,
     defaultStrategy: 'hover',
@@ -102,6 +114,16 @@ export default defineConfig({
     filter: (page) => {
       // The Keystatic admin UI and its API are private tooling, not content.
       return !page.includes('/moodboard') && !page.includes('/keystatic');
-    }
+    },
+    // Emits <xhtml:link rel="alternate" hreflang> between /foo and /de/foo for
+    // every page that exists in both. This pairs purely on the URL shape, so a
+    // German essay with no English counterpart gets no bogus alternate — but it
+    // also can't see the translationOf links, which is why the per-page
+    // hreflang tags in BaseLayout are computed separately rather than derived
+    // from here.
+    i18n: {
+      defaultLocale: 'en',
+      locales: { en: 'en-US', de: 'de-DE' },
+    },
   }), mdx(), ...(isDevServer ? [react(), keystatic()] : [])]
 });

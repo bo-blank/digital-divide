@@ -1,0 +1,65 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../Container.astro';
+import { mdxComponents } from '../mdx/components';
+import { localeEntryId } from '../../lib/content-utils';
+import { formatMonthYear } from '../../lib/format-date';
+import type { Lang } from '../../i18n/config';
+import { useTranslations } from '../../i18n/ui';
+
+/**
+ * The /privacy body, shared by /privacy and /de/privacy.
+ *
+ * The prose lives in src/content/pages/{privacy,de/privacy}.mdx so it can be
+ * edited in Keystatic (singletons.privacy / privacyDe). This file owns the
+ * chrome only.
+ */
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { t } = useTranslations(lang);
+
+const entryId = localeEntryId(lang, 'privacy');
+const page = await getEntry('pages', entryId);
+
+if (!page) {
+  throw new Error(
+    `Missing src/content/pages/${entryId}.mdx — /privacy renders its prose from the \`pages\` collection.`
+  );
+}
+
+const { Content } = await render(page);
+
+// Month and year only, unlike formatDate's day-level output — see the note on
+// formatMonthYear in lib/format-date.ts.
+const lastUpdated = page.data.updatedDate
+  ? formatMonthYear(page.data.updatedDate, lang)
+  : undefined;
+---
+
+<BaseLayout title={page.data.title} lang={lang} description={page.data.description}>
+  <section class="py-12 sm:py-16">
+    <Container narrow>
+      <header class="mb-12">
+        <h1>{page.data.title}</h1>
+        {lastUpdated && (
+          <p class="mt-4 text-base-content/70">
+            {t('privacy.lastUpdated', { date: lastUpdated })}
+          </p>
+        )}
+      </header>
+
+      <div class="prose prose-lg max-w-none">
+        {page.data.lead && (
+          <p class="text-xl text-base-content/70 leading-relaxed">
+            {page.data.lead}
+          </p>
+        )}
+        <Content components={mdxComponents} />
+      </div>
+    </Container>
+  </section>
+</BaseLayout>

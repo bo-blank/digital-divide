@@ -35,6 +35,13 @@ const blogCollection = defineCollection({
     // formatTagDisplay at render time.
     tags: z.array(z.string()).default([]).transform((tags) => tags.map(slugify)),
     series: blankToUndefined(z.string().optional()),
+    // The slug of the English essay this one translates, set on translated
+    // entries only. Locale itself comes from the directory (see entryLang in
+    // lib/content-utils.ts); this is the separate question of *which* English
+    // essay a German one corresponds to, which drives the language switcher and
+    // the hreflang alternates. An untranslated essay simply omits it, and the
+    // switcher falls back to the essays index in the other language.
+    translationOf: blankToUndefined(z.string().optional()),
     // Keystatic always writes the whole object, using `src: null` to mean "no
     // cover". Every consumer treats a cover as all-or-nothing (`coverImage ?
     // ... : ...`), so an object without an image is folded away entirely
@@ -68,6 +75,8 @@ const notesCollection = defineCollection({
     // collides on case-insensitive filesystems. Display casing is restored by
     // formatTagDisplay at render time.
     tags: z.array(z.string()).default([]).transform((tags) => tags.map(slugify)),
+    // See the note on the blog collection's field of the same name.
+    translationOf: blankToUndefined(z.string().optional()),
     color: z.enum(['yellow', 'pink', 'blue', 'green', 'purple', 'orange']).default('yellow'),
   }),
 });
@@ -96,8 +105,35 @@ const pagesCollection = defineCollection({
   }),
 });
 
+/**
+ * The tag vocabulary, written by Keystatic to src/data/tags/*.yaml.
+ *
+ * Until now nothing read these files — they existed only to populate the CMS
+ * dropdown, and every render site guessed a display label by title-casing the
+ * slug. That guess cannot produce "Soziale Medien" from `social-media`, and it
+ * could not produce "CMS" from `cms` either, so the vocabulary is now the
+ * single source of display labels for both languages (see lib/tag-labels.ts).
+ *
+ * Tag *slugs* stay shared across locales: a German essay carries the same
+ * `social-media` slug, so /tags/social-media and /de/tags/social-media are the
+ * same topic and pair up for hreflang without a mapping. Only the label is
+ * per-language.
+ */
+const tagsCollection = defineCollection({
+  loader: glob({ pattern: '**/*.{yaml,yml}', base: './src/data/tags' }),
+  schema: z.object({
+    // English, and the fallback for any locale with no label of its own.
+    name: z.string(),
+    // One field per non-default locale. Deliberately explicit rather than a
+    // free-form map: Keystatic needs a real field to render an input for, and
+    // the Zod schema is what keeps the two in lockstep.
+    de: blankToUndefined(z.string().optional()),
+  }),
+});
+
 export const collections = {
   blog: blogCollection,
   notes: notesCollection,
   pages: pagesCollection,
+  tags: tagsCollection,
 };

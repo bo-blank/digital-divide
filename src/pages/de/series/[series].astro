@@ -1,0 +1,23 @@
+---
+import type { GetStaticPaths } from 'astro';
+import SeriesPage from '../../../components/pages/SeriesPage.astro';
+import { getAllSeries } from '../../../lib/content-utils';
+import { slugify } from '../../../lib/slugify';
+
+// The slug goes in the URL; the original frontmatter string rides along as a
+// prop so the page can show "Future of Work" rather than re-title-casing
+// "future-of-work" and guessing at the author's capitalisation.
+export const getStaticPaths = (async () => {
+  const allSeries = await getAllSeries('de');
+
+  return allSeries.map((series) => ({
+    params: { series: slugify(series) },
+    props: { seriesName: series },
+  }));
+}) satisfies GetStaticPaths;
+
+const { series } = Astro.params;
+const { seriesName } = Astro.props;
+---
+
+<SeriesPage lang="de" seriesSlug={series} seriesName={seriesName} />

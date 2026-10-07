@@ -3,10 +3,14 @@ import { ClientRouter } from 'astro:transitions';
 import { Font } from 'astro:assets';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { defaultLocale, localeMeta, type Lang } from '../i18n/config';
+import { alternatesForPath, langFromUrl, type Alternate } from '../i18n/routing';
+import { useTranslations } from '../i18n/ui';
 import '../styles/global.css';
 
 interface Props {
   title: string;
+  lang?: Lang;
   description?: string;
   ogImage?: string;
   ogImageAlt?: string;
@@ -14,24 +18,45 @@ interface Props {
   publishDate?: Date;
   updatedDate?: Date;
   author?: string;
+  /**
+   * The same page in each locale it exists in. Defaults to "this path in every
+   * locale", which is right for every route whose content is not per-entry.
+   * Essay and note pages pass their own list, because a translation may not
+   * exist — claiming one that 404s is worse than claiming none.
+   */
+  alternates?: Alternate[];
 }
 
 const {
   title,
-  description = 'Essays exploring the intersection of technology and humanity.',
+  lang = langFromUrl(Astro.url),
   ogImage,
   ogImageAlt,
   ogType = 'website',
   publishDate,
   updatedDate,
   author,
+  alternates,
 } = Astro.props;
 
-const siteTitle = 'Digital Divide';
+const { t } = useTranslations(lang);
+const meta = localeMeta[lang];
+
+const description = Astro.props.description ?? t('site.description');
+const siteTitle = t('site.title');
 const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
 
 // Crawlers reject relative og:image values, so everything is absolutised here.
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+// Google wants every alternate set to be reciprocal and absolute. x-default
+// points at the default locale, which is the one an unmatched reader lands on.
+const resolvedAlternates = alternates ?? alternatesForPath(Astro.url.pathname);
+const alternateLinks = resolvedAlternates.map((alternate) => ({
+  hreflang: localeMeta[alternate.lang].htmlLang,
+  href: new URL(alternate.path, Astro.site).href,
+}));
+const defaultAlternate = resolvedAlternates.find((a) => a.lang === defaultLocale);
 
 // Every page gets a card. Callers that have a cover image pass one already
 // cropped to 1200x630; the rest fall back to the branded default, which is why
@@ -43,7 +68,7 @@ const resolvedOgAlt = ogImageAlt ?? `${siteTitle} — ${description}`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={meta.htmlLang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -80,13 +105,26 @@ const resolvedOgAlt = ogImageAlt ?? `${siteTitle} — ${description}`;
 
     <link rel="canonical" href={canonicalUrl} />
 
+    {/* The language switcher in the persisted header reads its target back off
+        these tags after a client-side navigation — see Header.astro. */}
+    {alternateLinks.map(({ hreflang, href }) => (
+      <link rel="alternate" hreflang={hreflang} href={href} />
+    ))}
+    {defaultAlternate && (
+      <link
+        rel="alternate"
+        hreflang="x-default"
+        href={new URL(defaultAlternate.path, Astro.site).href}
+      />
+    )}
+
     <!-- Open Graph -->
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content={siteTitle} />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={meta.ogLocale} />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content={String(OG_FALLBACK.width)} />
     <meta property="og:image:height" content={String(OG_FALLBACK.height)} />
@@ -113,8 +151,8 @@ const resolvedOgAlt = ogImageAlt ?? `${siteTitle} — ${description}`;
     <ClientRouter />
   </head>
   <body class="min-h-screen flex flex-col">
-    <a href="#main-content" class="skip-link">Skip to content</a>
-    <Header />
+    <a href="#main-content" class="skip-link">{t('site.skipToContent')}</a>
+    <Header lang={lang} alternates={resolvedAlternates} />
     <main
       id="main-content"
       tabindex="-1"
@@ -124,7 +162,7 @@ const resolvedOgAlt = ogImageAlt ?? `${siteTitle} — ${description}`;
     >
       <slot />
     </main>
-    <Footer />
+    <Footer lang={lang} />
 
     <!-- Preserve theme during View Transitions -->
     <script is:inline>

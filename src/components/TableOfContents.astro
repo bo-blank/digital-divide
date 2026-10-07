@@ -1,4 +1,7 @@
 ---
+import type { Lang } from '../i18n/config';
+import { useTranslations } from '../i18n/ui';
+
 export interface TocItem {
   depth: number;
   text: string;
@@ -15,10 +18,13 @@ export function filterTocHeadings(headings: TocItem[]): TocItem[] {
 
 interface Props {
   headings: TocItem[];
+  lang: Lang;
   title?: string;
 }
 
-const { headings, title = 'Contents' } = Astro.props;
+const { headings, lang, title } = Astro.props;
+const { t } = useTranslations(lang);
+const heading = title ?? t('toc.title');
 
 const filteredHeadings = filterTocHeadings(headings);
 ---
@@ -26,7 +32,7 @@ const filteredHeadings = filterTocHeadings(headings);
 {filteredHeadings.length > 2 && (
   <nav class="toc rounded-lg border border-base-300 bg-base-200/50 p-6" aria-labelledby="toc-heading">
     <h2 id="toc-heading" class="mb-4 text-sm font-semibold uppercase tracking-wide text-base-content/70">
-      {title}
+      {heading}
     </h2>
     <ol class="space-y-2 text-sm" role="list">
       {filteredHeadings.map((heading) => (

@@ -1,0 +1,116 @@
+---
+import { locales, localeMeta, type Lang } from '../i18n/config';
+import { localePath, type Alternate } from '../i18n/routing';
+import { useTranslations } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /**
+   * Where each locale's copy of the current page actually lives — the same
+   * list BaseLayout emits as <link rel="alternate" hreflang>, so the switcher
+   * and the crawlers can never disagree.
+   *
+   * A locale missing from the list has no translation of this page. That is
+   * the common case while a translation backlog is being worked through, and
+   * it must not be papered over by assuming the slug is the same in both
+   * languages: the slugs differ by design ("the-tell" / "der-hinweis"), so the
+   * guess is wrong even when a translation does exist. Those fall back to the
+   * locale's home page, which always exists.
+   */
+  alternates: Alternate[];
+}
+
+const { lang, alternates } = Astro.props;
+const { t } = useTranslations(lang);
+
+const targetFor = (locale: Lang) => {
+  const match = alternates.find((a) => a.lang === locale);
+  const language = localeMeta[locale].label;
+  return match
+    ? { href: match.path, label: t('nav.switchLanguage', { language }), available: true }
+    : {
+        href: localePath(locale, '/'),
+        label: t('nav.switchLanguageUnavailable', { language }),
+        available: false,
+      };
+};
+---
+
+<div class="flex items-center gap-0.5 font-ui text-xs" role="group" aria-label={t('nav.language')}>
+  {locales.map((locale, index) => (
+    <>
+      {index > 0 && <span class="text-base-content/30" aria-hidden="true">/</span>}
+      {locale === lang ? (
+        <span
+          class="px-1.5 py-1 font-semibold text-base-content uppercase"
+          aria-current="true"
+          lang={localeMeta[locale].htmlLang}
+        >
+          {locale}
+        </span>
+      ) : (
+        <a
+          href={targetFor(locale).href}
+          class:list={[
+            'px-1.5 py-1 uppercase transition-colors hover:text-primary',
+            targetFor(locale).available ? 'text-base-content/60' : 'text-base-content/40',
+          ]}
+          hreflang={localeMeta[locale].htmlLang}
+          data-lang-switch={locale}
+          data-fallback-href={localePath(locale, '/')}
+          data-label-available={t('nav.switchLanguage', { language: localeMeta[locale].label })}
+          data-label-unavailable={t('nav.switchLanguageUnavailable', {
+            language: localeMeta[locale].label,
+          })}
+          aria-label={targetFor(locale).label}
+        >
+          <span lang={localeMeta[locale].htmlLang}>{locale}</span>
+        </a>
+      )}
+    </>
+  ))}
+</div>
+
+<script>
+  /**
+   * Keep the switcher pointing at the *current* page's counterpart.
+   *
+   * The server render is already correct on a cold load. This exists for the
+   * one case it cannot cover: the header is transition:persist, so on a
+   * client-side navigation within a locale this element survives with the href
+   * it was first rendered with — on /essays it would keep sending readers to
+   * the German essays index even after they had moved on to /essays/the-tell.
+   *
+   * The targets are read back from the <link rel="alternate" hreflang> tags in
+   * the swapped-in <head>, which is the same list the server used, so the two
+   * paths through this component cannot drift. A page with no tag for that
+   * locale has no translation, and falls back to the locale home exactly as
+   * the server render does.
+   */
+  function syncLanguageSwitcher() {
+    document.querySelectorAll('[data-lang-switch]').forEach((link) => {
+      if (!(link instanceof HTMLAnchorElement)) return;
+      const locale = link.dataset.langSwitch;
+      if (!locale) return;
+
+      const alternate = document
+        .querySelector(`link[rel="alternate"][hreflang="${locale}"]`)
+        ?.getAttribute('href');
+
+      if (alternate) {
+        link.setAttribute('href', new URL(alternate).pathname);
+        link.setAttribute('aria-label', link.dataset.labelAvailable ?? '');
+        link.classList.add('text-base-content/60');
+        link.classList.remove('text-base-content/40');
+      } else {
+        link.setAttribute('href', link.dataset.fallbackHref ?? '/');
+        link.setAttribute('aria-label', link.dataset.labelUnavailable ?? '');
+        link.classList.add('text-base-content/40');
+        link.classList.remove('text-base-content/60');
+      }
+    });
+  }
+
+  syncLanguageSwitcher();
+  document.addEventListener('astro:after-swap', syncLanguageSwitcher);
+</script>

@@ -1,0 +1,26 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import NotePost from '../../../components/pages/NotePost.astro';
+import { entrySlug, getPublishedNotes } from '../../../lib/content-utils';
+
+// getPublishedNotes rather than a bare getCollection draft filter: it also
+// excludes future publishDates. Filtering only drafts here meant a scheduled
+// note was hidden from every listing but still built, sitemapped and
+// crawlable at its own URL.
+export async function getStaticPaths() {
+  const notes = await getPublishedNotes('de');
+
+  return notes.map((note) => ({
+    params: { slug: entrySlug(note.id) },
+    props: { note },
+  }));
+}
+
+interface Props {
+  note: CollectionEntry<'notes'>;
+}
+
+const { note } = Astro.props;
+---
+
+<NotePost lang="de" note={note} />

@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../Container.astro';
+import { getAllSeries, getPostsBySeries } from '../../lib/content-utils';
+import { slugify } from '../../lib/slugify';
+import type { Lang } from '../../i18n/config';
+import { localePath } from '../../i18n/routing';
+import { useTranslations } from '../../i18n/ui';
+
+/** The series index, shared by /series and /de/series. */
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { t, plural } = useTranslations(lang);
+
+const allSeries = await getAllSeries(lang);
+
+// Get post counts for each series
+const seriesWithCounts = await Promise.all(
+  allSeries.map(async (series) => {
+    const posts = await getPostsBySeries(lang, slugify(series));
+    return {
+      name: series,
+      count: posts.length,
+      latestPost: posts[0],
+    };
+  })
+);
+
+// Format series name for display
+function formatSeriesName(name: string): string {
+  return name
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+---
+
+<BaseLayout
+  title={t('series.indexTitle')}
+  lang={lang}
+  description={t('series.indexDescription')}
+>
+  <section class="py-12 sm:py-16">
+    <Container>
+      <header class="mb-12">
+        <h1 class="text-3xl sm:text-4xl font-heading font-normal tracking-tight">
+          {t('series.indexTitle')}
+        </h1>
+        <p class="mt-3 text-base-content/70">
+          {t('series.indexTagline')}
+        </p>
+      </header>
+
+      {seriesWithCounts.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {seriesWithCounts.map(({ name, count, latestPost }) => (
+            <a
+              href={localePath(lang, `/series/${slugify(name)}/`)}
+              class="block p-6 bg-base-100 shadow-[0_2px_8px_rgba(91,127,199,0.3)] hover:shadow-[0_4px_16px_rgba(91,127,199,0.4)] transition-shadow group"
+            >
+              <h2 class="font-heading font-medium text-lg group-hover:text-primary transition-colors">
+                {formatSeriesName(name)}
+              </h2>
+              <p class="mt-1 text-sm text-base-content/60">
+                {plural('series.partCount', count)}
+              </p>
+              {latestPost && (
+                <p class="mt-3 text-sm text-base-content/70 line-clamp-2">
+                  {t('series.latest', { title: latestPost.data.title })}
+                </p>
+              )}
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p class="text-base-content/70 text-center py-12">
+          {t('series.indexEmpty')}
+        </p>
+      )}
+    </Container>
+  </section>
+</BaseLayout>

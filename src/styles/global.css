@@ -734,11 +734,15 @@ article[class*="shadow"] {
    invisible. .btn was excluded for the header's Subscribe button; tag pills
    have exactly the same shape and were not, so hovering a trending topic in
    the header painted teal text on a teal pill — about 1:1. They are excluded
-   by class and by href because both forms exist in the markup.
+   by class rather than by href: `[href^="/tags/"]` is a *prefix* match, so it
+   silently stopped excluding anything once the German tag links became
+   /de/tags/... — the exclusion has to survive a locale prefix, and a class
+   does. `.tag` is the pill; `.tag-link` is the header's trending topics, which
+   are plain links but must not be repainted either.
    Being later and more specific than the tag rule, this used to win. */
-nav a:not(.btn):not(.tag):not([href^="/tags/"]):hover,
-.nav-link:not(.tag):not([href^="/tags/"]):hover,
-header a:not(.btn):not(.tag):not([href^="/tags/"]):hover {
+nav a:not(.btn):not(.tag):not(.tag-link):hover,
+.nav-link:not(.tag):not(.tag-link):hover,
+header a:not(.btn):not(.tag):not(.tag-link):hover {
   color: var(--color-accent);
 }
 
@@ -841,7 +845,11 @@ main:focus {
    Tag Styles
    ======================================== */
 
-a[href^="/tags/"],
+/* Matched by class, not by href. The old `a[href^="/tags/"]` was a prefix
+   match against the *default* locale's path, so every German tag pill at
+   /de/tags/... fell through it and rendered as bare text — same markup, same
+   page, different design, purely because of the URL it pointed at. Styling by
+   URL shape cannot survive a locale prefix; every tag link now carries `.tag`. */
 .tag {
   @apply inline-block rounded-full bg-accent/10 text-accent px-3 py-1 text-xs transition-colors border-none;
 }
@@ -849,12 +857,11 @@ a[href^="/tags/"],
 /* text-accent-content rather than text-white: --color-accent is a bright teal
    in dark mode, and its paired foreground is dark ink for exactly that reason.
    Hardcoding white left the hover state at 1.86:1 there. */
-a[href^="/tags/"]:hover,
 .tag:hover {
   @apply bg-accent text-accent-content;
 }
 
-/* The blanket `a[href^="/tags/"] span { opacity: .7 }` that used to live here
+/* The blanket `.tag span { opacity: .7 }` that used to live here
    was written for a count inside a pill, but no pill has ever had one. The
    only thing it reached was the /tags index rows, where it dimmed an already
    muted count to 2.67:1. That page now sets its own opacity. */
