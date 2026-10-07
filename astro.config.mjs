@@ -74,42 +74,56 @@ export default defineConfig({
   // external stylesheet was render-blocking in <head>, and hotlinking Google
   // Fonts leaks reader IPs to Google, which German courts have held to breach
   // GDPR — awkward for a site that ships a privacy policy.
+  // The files are committed under src/assets/fonts/ rather than fetched by
+  // fontProviders.google() at build time, so a build needs no network access
+  // and cannot change when Google re-cuts a family. Each is a variable font
+  // (Google's Latin subset, all OFL-licensed), so one file covers a weight range.
   fonts: [
     {
-      provider: fontProviders.google(),
+      provider: fontProviders.local(),
       name: 'Fraunces',
       cssVariable: '--font-fraunces',
-      weights: [400, 500, 600, 700],
-      styles: ['normal', 'italic'],
-      subsets: ['latin'],
       fallbacks: ['Georgia', 'Times New Roman', 'serif'],
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/fraunces.woff2'], weight: '400 700', style: 'normal' },
+          { src: ['./src/assets/fonts/fraunces-italic.woff2'], weight: '400 700', style: 'italic' },
+        ],
+      },
     },
     {
-      provider: fontProviders.google(),
+      provider: fontProviders.local(),
       name: 'Lora',
       cssVariable: '--font-lora',
-      weights: [400, 500, 600],
-      styles: ['normal', 'italic'],
-      subsets: ['latin'],
       fallbacks: ['Georgia', 'Times New Roman', 'serif'],
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/lora.woff2'], weight: '400 600', style: 'normal' },
+          { src: ['./src/assets/fonts/lora-italic.woff2'], weight: '400 600', style: 'italic' },
+        ],
+      },
     },
     {
-      provider: fontProviders.google(),
+      provider: fontProviders.local(),
       name: 'Inter',
       cssVariable: '--font-inter',
-      weights: [400, 500, 600],
-      styles: ['normal'],
-      subsets: ['latin'],
       fallbacks: ['system-ui', 'sans-serif'],
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/inter.woff2'], weight: '400 600', style: 'normal' },
+        ],
+      },
     },
     {
-      provider: fontProviders.google(),
+      provider: fontProviders.local(),
       name: 'Caveat',
       cssVariable: '--font-caveat',
-      weights: [400, 500, 600, 700],
-      styles: ['normal'],
-      subsets: ['latin'],
       fallbacks: ['Segoe Print', 'Bradley Hand', 'cursive'],
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/caveat.woff2'], weight: '400 700', style: 'normal' },
+        ],
+      },
     },
   ],
   integrations: [sitemap({
