@@ -965,8 +965,9 @@ actual AT, and automated axe-core checks (see NS.6 / Phase 7.4).
   building in a US timezone shifts every displayed date back a day while the
   `<time datetime>` attribute still says the original. Extract one shared
   `formatDate()` using `timeZone: 'UTC'`
-- `src/content/blog/test-post.mdx` is real content ("Welcome to Digital
-  Divide") published at `/essays/test-post/`. Rename the file and add a redirect
+- ~~`src/content/blog/test-post.mdx` is real content ("Welcome to Digital
+  Divide") published at `/essays/test-post/`. Rename the file and add a redirect~~
+  Done: now `welcome-to-digital-divide`, old URL redirects
 - `/series` and `/series/*` are unreachable from the UI — no header or footer
   link, and `SeriesNav` only renders when a series has more than one post
 - `formatTagDisplay` is duplicated verbatim in `tags/index.astro` and

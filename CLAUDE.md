@@ -111,7 +111,7 @@ The essay and note lists show slug, title and publish date, newest first. Only
 part of that is configurable: Keystatic builds the table as `[slug, ...columns]`
 and hardcodes the initial sort to that slug column ascending, so `columns` can
 only append — the slug column can't be moved, renamed or dropped, and there is
-no `initialSort` option (checked against 0.6.5, the current release). The one
+no `initialSort` option (checked against 0.6.5; not re-checked since). The one
 hook is `parseSlugForSort`, which replaces the value the slug column sorts on;
 `byPublishDateDescending` in `keystatic.config.ts` feeds it negated publish
 dates read out of the `.mdx` files with an eager `?raw` glob, because the table
@@ -139,7 +139,8 @@ first keystroke — `focusout` with a null `relatedTarget` — which reverts the
 input, so only the dropdown is usable. Reproduced with stock field types and
 ruled out as causes: React 19 vs 18, `entryLayout`, the `BrandMark`, and the
 Astro dev toolbar. Don't re-litigate it by swapping field types; the fix has to
-come from upstream (@keystatic/core 0.6.5 / @keystar/ui 0.9.3).
+come from upstream. Reproduced on @keystatic/core 0.6.5 / @keystar/ui 0.9.3;
+not yet re-tested on 0.6.9 / 0.10.0, the versions now installed.
 
 `translationOf` is offered only on the German collections: the link is declared
 in one direction (a German entry names the English slug it translates), so on an
@@ -236,7 +237,8 @@ anything. Tag links now carry `.tag` (pill) or `.tag-link` (header trending),
 and the CSS matches those. Anything keyed on a path prefix is a latent
 locale bug: `alternatesForPath` was the same mistake in a different file.
 
-**Deployment gap:** `src/pages/de/404.astro` builds to `/de/404.html`, but a
+**Deployment gap:** `src/pages/de/404.astro` builds to `/de/404/index.html` —
+only the root `404.astro` gets Astro's special `404.html` treatment — and a
 static host serves the root `/404.html` for every miss. Routing `/de/*` misses
 to the German page needs a host rule (Netlify `_redirects`, Vercel rewrite).
 Until then the root 404 carries a "Deutsch" button to `/de/`.
@@ -300,7 +302,7 @@ export const POST: APIRoute = async ({ request }) => {
 - Pages: `tags/index.astro`, `tags/[tag].astro`, `series/index.astro`, `series/[series].astro`
 - Pages: `about.astro`, `privacy.astro`, `subscribe.astro`, `rss.xml.ts`
 - Components: `Header`, `Footer`, `Container`, `Pagination`, `ShareButtons`, `CopyButton`, `TableOfContents`, `RelatedPosts`, `SeriesNav`, `PageBanner`
-- Content: 5 blog posts, 4 notes (English)
+- Content: 6 essays, 4 notes (English)
 
 #### Phase 3b — German locale
 

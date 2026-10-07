@@ -44,6 +44,8 @@ export default defineConfig({
   redirects: {
     '/blog': '/essays',
     '/blog/[slug]': '/essays/[slug]',
+    '/blog/test-post': '/essays/welcome-to-digital-divide',
+    '/essays/test-post': '/essays/welcome-to-digital-divide',
   },
   vite: {
     plugins: [tailwindcss()]
