@@ -60,60 +60,44 @@ for (const other of locales) {
 >
   <section class="py-12 sm:py-16">
     <Container narrow>
-      <article>
-        <header class="mb-8">
-          {note.data.draft && (
-            <span class="mb-2 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
-              {t('notes.draft')}
-            </span>
-          )}
-          {/* `title` is optional on notes, and an untitled one used to render
-              no h1 at all. The visible design for those is just the date, so
-              the fallback heading is exposed only to assistive tech rather
-              than repeating the date above itself. */}
-          {note.data.title ? (
-            <h1>
-              {note.data.title}
-            </h1>
-          ) : (
-            <h1 class="sr-only">{title}</h1>
-          )}
-          <time
-            datetime={note.data.publishDate.toISOString()}
-            class="mt-2 block text-sm text-base-content/70"
-          >
-            {formattedDate}
-          </time>
-          {note.data.tags.length > 0 && (
-            <div class="mt-4 flex flex-wrap gap-2">
-              {note.data.tags.map((tag) => (
-                <a
-                  href={localePath(lang, `/tags/${tag}`)}
-                  class="tag"
-                >
-                  {tagLabel(tag)}
-                </a>
-              ))}
-            </div>
-          )}
-        </header>
+      <article class="note-sheet" data-note-color={note.data.color}>
+        {note.data.draft && (
+          <span class="note-badge">{t('notes.draft')}</span>
+        )}
+        {/* `title` is optional on notes, and an untitled one used to render
+            no h1 at all. The visible design for those is just the note itself,
+            so the fallback heading is exposed only to assistive tech. */}
+        {note.data.title ? (
+          <h1 class="note-sheet-title">{note.data.title}</h1>
+        ) : (
+          <h1 class="sr-only">{title}</h1>
+        )}
 
-        <div
-          class="prose prose-note max-w-none"
-          data-note-color={note.data.color}
-        >
+        <div class="prose prose-note max-w-none">
           <Content components={mdxComponents} />
         </div>
+
+        {/* Signed off at the bottom of the note, the way you'd date one. */}
+        <footer class="note-sheet-meta">
+          <time datetime={note.data.publishDate.toISOString()}>
+            {formattedDate}
+          </time>
+          {note.data.tags.map((tag) => (
+            <a href={localePath(lang, `/tags/${tag}`)} class="tag">
+              {tagLabel(tag)}
+            </a>
+          ))}
+        </footer>
       </article>
 
-      <footer class="mt-12 border-t border-base-300 pt-8">
+      <div class="mt-14 text-center">
         <a
           href={localePath(lang, '/notes')}
           class="text-primary hover:underline"
         >
           {t('notes.allNotes')}
         </a>
-      </footer>
+      </div>
     </Container>
   </section>
 </BaseLayout>

@@ -399,62 +399,57 @@ article[class*="shadow"] {
   font-weight: 500;
 }
 
-/* Notes - post-it note style */
-.prose-note {
-  /* Default yellow colors */
-  --note-bg-start: #fef9c3;
-  --note-bg-end: #fde047;
-  --note-text: #422006;
-  --note-line: rgba(66, 32, 6, 0.08);
+/* Single note - the whole <article> is one post-it (tape, ruled paper, tint),
+   with the title written on it and the date and tags along the bottom.
 
-  font-family: var(--font-note);
-  font-weight: 500;
-  font-size: 1.25rem;
-  line-height: 1.6;
-  letter-spacing: 0.01em;
-  /* Subtle paper texture + horizontal lines + gradient */
+   Everything vertical is a multiple of --note-lh, the ruled-line spacing,
+   so the writing sits on the rules instead of drifting across them. It is
+   declared in rem, not em: a custom property holding `1.6em` re-resolves
+   against each descendant's own font-size, which would give the title and the
+   body different grids. */
+.note-sheet {
+  --note-size: 1.2rem;
+  /* --note-lh, not --note-line: the colour variants below already use that
+     name for the rule colour, and would win over this on source order. */
+  --note-lh: calc(var(--note-size) * 1.6);
+
+  position: relative;
+  max-width: 42rem;
+  margin: 1.5rem auto 0;
+  padding: calc(var(--note-lh) * 2) 1.25rem var(--note-lh);
+  font-size: var(--note-size);
+  line-height: var(--note-lh);
+  color: var(--note-text, #422006);
   background:
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E"),
     repeating-linear-gradient(
       transparent,
-      transparent calc(1.6em - 1px),
-      var(--note-line) calc(1.6em - 1px),
-      var(--note-line) 1.6em
+      transparent calc(var(--note-lh) - 1px),
+      var(--note-line, rgba(66, 32, 6, 0.08)) calc(var(--note-lh) - 1px),
+      var(--note-line, rgba(66, 32, 6, 0.08)) var(--note-lh)
     ),
-    linear-gradient(135deg, var(--note-bg-start) 0%, var(--note-bg-end) 100%);
+    linear-gradient(135deg, var(--note-bg-start, #fef9c3) 0%, var(--note-bg-end, #fde047) 100%);
   background-blend-mode: soft-light, normal, normal;
-  padding: 1.75rem 1.5rem 2rem;
-  max-width: 42rem;
-  margin-left: auto;
-  margin-right: auto;
-  /* Shadow for lifted paper effect - adhesive at top */
   box-shadow:
-    /* Main drop shadow - stronger at bottom (paper lifts from surface) */
     0 1px 1px rgba(0, 0, 0, 0.06),
     0 4px 6px rgba(0, 0, 0, 0.08),
     0 12px 20px -4px rgba(0, 0, 0, 0.12),
     /* Bottom-right corner curl */
     inset -12px -12px 16px -16px rgba(0, 0, 0, 0.06);
-  position: relative;
-  transform: rotate(-1.5deg) translateX(-4px);
-  color: var(--note-text);
-  /* Subtle ink bleed effect */
-  text-shadow: 0 0 0.5px var(--note-line);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Gentler than the wall: this is a reading surface, and a long note tilted
+     2deg reads like a slanted page. No hover lift either, for the same reason. */
+  transform: rotate(-0.4deg);
 }
 
-/* Hover interaction - slight lift */
-.prose-note:hover {
-  transform: rotate(-0.5deg) translateX(-2px) translateY(-2px);
-  box-shadow:
-    0 2px 2px rgba(0, 0, 0, 0.05),
-    0 8px 12px rgba(0, 0, 0, 0.1),
-    0 20px 32px -8px rgba(0, 0, 0, 0.15),
-    inset -12px -12px 16px -16px rgba(0, 0, 0, 0.06);
+@media (min-width: 768px) {
+  .note-sheet {
+    --note-size: 1.4rem;
+    padding-inline: 2.5rem;
+    transform: rotate(-0.8deg);
+  }
 }
 
-/* Dark mode - deepen shadows */
-.dark .prose-note {
+.dark .note-sheet {
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.2),
     0 6px 10px rgba(0, 0, 0, 0.25),
@@ -462,36 +457,127 @@ article[class*="shadow"] {
     inset -12px -12px 16px -16px rgba(0, 0, 0, 0.08);
 }
 
-.dark .prose-note:hover {
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.2),
-    0 10px 16px rgba(0, 0, 0, 0.3),
-    0 24px 40px -8px rgba(0, 0, 0, 0.4),
-    inset -12px -12px 16px -16px rgba(0, 0, 0, 0.08);
+/* The same tape as the wall's cards, a little wider. */
+.note-sheet::before {
+  content: "";
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  width: 7rem;
+  height: 1.6rem;
+  transform: translateX(-50%) rotate(2deg);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-@media (max-width: 767px) {
-  .prose-note {
-    font-size: 1.1rem;
-    padding: 1.25rem 1rem 1.5rem;
-    transform: rotate(-1deg) translateX(-2px);
-  }
-
-  .prose-note:hover {
-    transform: rotate(-0.5deg) translateX(-1px) translateY(-1px);
-  }
+.dark .note-sheet::before {
+  background: rgba(255, 255, 255, 0.28);
 }
 
-@media (min-width: 768px) {
-  .prose-note {
-    padding: 2rem 2rem 2.25rem;
-    transform: rotate(-2deg) translateX(-8px);
-    max-width: 48rem;
-  }
+.note-sheet-title {
+  margin: 0 0 var(--note-lh);
+  font-family: var(--font-note);
+  font-size: 2.1em;
+  font-weight: 700;
+  /* Two ruled lines per heading line keeps the grid. */
+  line-height: calc(var(--note-lh) * 2);
+  letter-spacing: 0;
+  color: inherit;
+}
 
-  .prose-note:hover {
-    transform: rotate(-1deg) translateX(-4px) translateY(-3px);
-  }
+.note-sheet-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.5rem;
+  margin-top: var(--note-lh);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  line-height: var(--note-lh);
+}
+
+.note-sheet-meta time {
+  margin-right: 0.5rem;
+  opacity: 0.75;
+}
+
+/* Body type. Qualified as `.prose.prose-note` because the site-wide `.prose`
+   rule further down sets font-family, size and line-height at the same
+   specificity and wins on source order — which is why note bodies used to
+   render in Lora, off the rules. */
+.prose.prose-note {
+  --tw-prose-body: var(--note-text, #422006);
+  --tw-prose-headings: var(--note-text, #422006);
+  --tw-prose-bold: var(--note-text, #422006);
+  --tw-prose-links: var(--note-text, #422006);
+  --tw-prose-quotes: var(--note-text, #422006);
+  --tw-prose-quote-borders: color-mix(in oklab, var(--note-text, #422006) 35%, transparent);
+  --tw-prose-bullets: color-mix(in oklab, var(--note-text, #422006) 60%, transparent);
+  --tw-prose-counters: color-mix(in oklab, var(--note-text, #422006) 75%, transparent);
+  --tw-prose-hr: color-mix(in oklab, var(--note-text, #422006) 25%, transparent);
+  --tw-prose-code: var(--note-text, #422006);
+
+  /* Undo the generic `.prose` reading box (page background + padding), which
+     would otherwise sit on the paper as an opaque panel — and in dark mode turn
+     the note's dark ink into dark-on-dark. */
+  background: none;
+  padding: 0;
+  max-width: none;
+
+  font-family: var(--font-note);
+  font-weight: 500;
+  font-size: inherit;
+  line-height: var(--note-lh);
+  letter-spacing: 0.01em;
+  color: var(--note-text, #422006);
+}
+
+.prose.prose-note :where(p, ul, ol, blockquote, figure, pre, hr) {
+  margin-top: 0;
+  margin-bottom: var(--note-lh);
+}
+
+.prose.prose-note :where(li) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.prose.prose-note :where(li > p) {
+  margin: 0;
+}
+
+.prose.prose-note :where(h2, h3, h4) {
+  margin-top: var(--note-lh);
+  margin-bottom: 0;
+  font-family: var(--font-note);
+  font-size: 1.4em;
+  font-weight: 700;
+  line-height: var(--note-lh);
+  letter-spacing: 0;
+}
+
+.prose.prose-note :where(blockquote) {
+  padding-left: 1em;
+  font-style: normal;
+}
+
+.prose.prose-note > :last-child {
+  margin-bottom: 0;
+}
+
+/* Draft badge, on both the wall's cards and the sheet. */
+.note-badge {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: color-mix(in oklab, var(--note-text, #422006) 12%, transparent);
 }
 
 /* Color variations - just override custom properties.
@@ -553,6 +639,171 @@ article[class*="shadow"] {
 .note-accent:hover {
   border-color: var(--note-bg-end, currentColor);
 }
+
+/* Notes listing - a wall of taped-up post-its, tinted from the same
+   [data-note-color] tokens as .prose-note. No colour defaults are declared on
+   .note-card itself: it has the same specificity as [data-note-color] and comes
+   later, so it would override every tint. The var() fallbacks cover a card with
+   no attribute instead. */
+.note-card {
+  --note-tilt: -1.2deg;
+  position: relative;
+  padding: 1.75rem 1.5rem 1.25rem;
+  font-family: var(--font-note);
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--note-text, #422006);
+  background:
+    repeating-linear-gradient(
+      transparent,
+      transparent calc(1.6em - 1px),
+      var(--note-line, rgba(66, 32, 6, 0.08)) calc(1.6em - 1px),
+      var(--note-line, rgba(66, 32, 6, 0.08)) 1.6em
+    ),
+    linear-gradient(135deg, var(--note-bg-start, #fef9c3) 0%, var(--note-bg-end, #fde047) 100%);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.06),
+    0 4px 6px rgba(0, 0, 0, 0.08),
+    0 12px 20px -4px rgba(0, 0, 0, 0.12);
+  transform: rotate(var(--note-tilt));
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Overlapping cycles so neighbours in a 2- or 3-column grid rarely share a
+   tilt — a single nth-child(3n) cycle lines up into identical columns. */
+.note-card:nth-child(2n) { --note-tilt: 1deg; }
+.note-card:nth-child(3n) { --note-tilt: -0.4deg; }
+.note-card:nth-child(5n) { --note-tilt: 1.6deg; }
+
+/* The strip of tape holding it up. */
+.note-card::before {
+  content: "";
+  position: absolute;
+  top: -0.65rem;
+  left: 50%;
+  width: 5.5rem;
+  height: 1.4rem;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.dark .note-card::before {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.note-card:hover,
+.note-card:focus-within {
+  z-index: 1;
+  transform: rotate(0deg) translateY(-4px);
+  box-shadow:
+    0 2px 2px rgba(0, 0, 0, 0.05),
+    0 8px 12px rgba(0, 0, 0, 0.1),
+    0 20px 32px -8px rgba(0, 0, 0, 0.15);
+}
+
+.dark .note-card {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 6px 10px rgba(0, 0, 0, 0.25),
+    0 16px 28px -4px rgba(0, 0, 0, 0.35);
+}
+
+.dark .note-card:hover,
+.dark .note-card:focus-within {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 10px 16px rgba(0, 0, 0, 0.3),
+    0 24px 40px -8px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 639px) {
+  .note-card {
+    transform: rotate(calc(var(--note-tilt) * 0.5));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note-card {
+    transition: none;
+  }
+}
+
+.note-card-title {
+  margin: 0 0 0.25rem;
+  font-family: inherit;
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: inherit;
+}
+
+/* Untitled notes: the heading holds only sr-only text, so drop its margin. */
+.note-card-title:has(> a > .sr-only:only-child) {
+  margin: 0;
+}
+
+/* Stretched link: the whole post-it is the hit area. The focus ring is drawn
+   on the card, since the link itself has no visible box of its own. */
+.note-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.note-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.note-card-link:focus-visible {
+  outline: none;
+}
+
+.note-card:has(.note-card-link:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+.note-card-preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+}
+
+.note-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.note-card-meta time {
+  opacity: 0.75;
+}
+
+/* Tags sit above the stretched link so they stay clickable, and take the
+   note's ink: the site's teal pill is unreadable on the pastels in dark mode. */
+.note-card .tag,
+.note-sheet .tag {
+  position: relative;
+  z-index: 1;
+  background: color-mix(in oklab, var(--note-text, #422006) 10%, transparent);
+  color: var(--note-text, #422006);
+}
+
+.note-card .tag:hover,
+.note-sheet .tag:hover {
+  background: var(--note-text, #422006);
+  color: var(--note-bg-start, #fef9c3);
+}
+
 
 .prose-note strong,
 .prose-note b {

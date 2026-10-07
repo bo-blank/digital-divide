@@ -20,7 +20,7 @@ const tagLabel = await getTagLabeller(lang);
 
 const notes = await getPublishedNotes(lang);
 
-function getPreview(body: string, maxLength = 150): string {
+function getPreview(body: string, maxLength = 260): string {
   const text = body
     .replace(/^---[\s\S]*?---\s*/m, '')  // strip frontmatter if present
     .replace(/!\[.*?\]\(.*?\)/g, '')       // strip images
@@ -50,48 +50,42 @@ function getPreview(body: string, maxLength = 150): string {
     <Container>
 
       {notes.length > 0 ? (
-        <div class="space-y-8">
+        <div class="grid items-start gap-x-8 gap-y-12 pt-4 sm:grid-cols-2 lg:grid-cols-3">
           {notes.map((note) => (
-            <article
-              class="group note-accent border-l-2 pl-6"
-              data-note-color={note.data.color}
-            >
-              <a href={localePath(lang, `/notes/${entrySlug(note.id)}`)} class="block">
-                {note.data.draft && (
-                  <span class="mb-2 inline-block rounded bg-secondary/20 px-2 py-1 text-xs font-medium text-secondary">
-                    {t('notes.draft')}
-                  </span>
-                )}
-                {note.data.title ? (
-                  <h2 class="text-xl font-semibold group-hover:text-primary transition-colors">
-                    {note.data.title}
-                  </h2>
-                ) : (
-                  <p class="text-base-content group-hover:text-primary transition-colors">
-                    {t('notes.viewNote')}
-                  </p>
-                )}
-                <time
-                  datetime={note.data.publishDate.toISOString()}
-                  class="mt-2 block text-sm text-base-content/70"
-                >
+            <article class="note-card" data-note-color={note.data.color}>
+              {note.data.draft && (
+                <span class="note-badge">{t('notes.draft')}</span>
+              )}
+              {/* One stretched link per card (see .note-card-link) keeps a single
+                  tab stop per note while the tags stay separately clickable.
+                  An untitled note gets its fallback title for assistive tech
+                  only — visibly, the preview is the note. */}
+              <h2 class="note-card-title">
+                <a href={localePath(lang, `/notes/${entrySlug(note.id)}`)} class="note-card-link">
+                  {note.data.title ?? (
+                    <span class="sr-only">
+                      {t('notes.untitled', { date: formatDate(note.data.publishDate, lang) })}
+                    </span>
+                  )}
+                </a>
+              </h2>
+              {note.body && (
+                <p class="note-card-preview">{getPreview(note.body)}</p>
+              )}
+              <div class="note-card-meta">
+                <time datetime={note.data.publishDate.toISOString()}>
                   {formatDate(note.data.publishDate, lang)}
                 </time>
-                {note.body && (
-                  <p class="mt-2 text-sm text-base-content/70 line-clamp-2">
-                    {getPreview(note.body)}
-                  </p>
+                {note.data.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-1.5">
+                    {note.data.tags.map((tag) => (
+                      <a href={localePath(lang, `/tags/${tag}`)} class="tag">
+                        {tagLabel(tag)}
+                      </a>
+                    ))}
+                  </div>
                 )}
-              </a>
-              {note.data.tags.length > 0 && (
-                <div class="mt-3 flex flex-wrap gap-2">
-                  {note.data.tags.map((tag) => (
-                    <a href={localePath(lang, `/tags/${tag}`)} class="tag">
-                      {tagLabel(tag)}
-                    </a>
-                  ))}
-                </div>
-              )}
+              </div>
             </article>
           ))}
         </div>
